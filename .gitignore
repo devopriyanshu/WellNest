@@ -1,0 +1,25 @@
+# Node.js dependencies
+/node_modules/
+
+# Environment variable files
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# Operating system files
+.DS_Store   # macOS specific
+Thumbs.db   # Windows specific
+
+# Build directories
+/dist
+/build
+
+# IDE files
+.vscode/
+.idea/
+
+# Debug files
+*.bak
+*.swp
