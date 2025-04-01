@@ -8,6 +8,7 @@ import {
   signupController,
 } from "./controllers/authController.js";
 import session from "express-session";
+// import { authMiddleware } from "middleware/authMiddleware.js";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(express.json()); // Middleware for parsing JSON
 app.use(
   session({ secret: "your-secret", resave: false, saveUninitialized: true })
 );
+// app.get("/user", authMiddleware);
 
 //Initialize Passport
 app.use(passport.initialize());
