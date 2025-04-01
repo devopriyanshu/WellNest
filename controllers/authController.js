@@ -32,23 +32,9 @@ export const loginController = async (req, res) => {
 };
 
 export const googleAuthController = async (req, res) => {
-  const { idToken } = req.body; // Get the ID token from the client-side
-  console.log("Received ID Token:", idToken);
-
-  try {
-    // Call the Google Sign-In service to process the token and return the user and JWT token
-    const { user, token } = await googleSignInService(idToken);
-
-    res.status(200).json({
-      message: "Login successful",
-      user,
-      token,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({ error: error.message });
-  }
+  res.status(400).json({ error: "Use /auth/google instead" });
 };
+
 export const logoutController = (req, res) => {
   req.logout((err) => {
     if (err) {

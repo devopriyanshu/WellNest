@@ -49,7 +49,6 @@ export const googleSignInService = async (idToken) => {
     let user = await findUserByEmail(email);
 
     if (!user) {
-      const name = email.split("@")[0];
       user = await createUser(name, email, null);
     }
 

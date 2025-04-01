@@ -1,7 +1,7 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { findUserByEmail, createUser } from "../models/userModel.js"; // Adjust with your model
-import { generateToken } from "../utils/jwtUtility.js"; // Adjust JWT token generation
+import { findUserByEmail, createUser } from "../models/userModel.js";
+import { generateToken } from "../utils/jwtUtility.js";
 
 passport.use(
   new GoogleStrategy(
@@ -13,8 +13,6 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       try {
         console.log("Google OAuth Profile:", profile);
-        console.log("Access Token:", accessToken);
-        console.log("Refresh Token:", refreshToken);
 
         const email = profile.emails[0].value;
         let user = await findUserByEmail(email);
@@ -23,7 +21,11 @@ passport.use(
           user = await createUser(profile.displayName, email);
         }
 
-        return done(null, user);
+        // ✅ Generate JWT Token
+        const token = generateToken(user.id);
+
+        // ✅ Pass user and token
+        return done(null, { user, token });
       } catch (error) {
         return done(error, null);
       }
@@ -33,11 +35,11 @@ passport.use(
 
 // Serialize and deserialize user
 passport.serializeUser((user, done) => {
-  done(null, user.id);
+  done(null, user);
 });
 
-passport.deserializeUser((id, done) => {
-  done(null, { id });
+passport.deserializeUser((user, done) => {
+  done(null, user);
 });
 
 export default passport;

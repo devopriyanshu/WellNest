@@ -14,8 +14,15 @@ router.get(
 
 router.get(
   "/google/callback",
-  passport.authenticate("google", { failureRedirect: "/login" }),
-  googleAuthController
+  passport.authenticate("google", { session: false }),
+  (req, res) => {
+    if (!req.user || !req.user.token) {
+      return res.redirect("http://localhost:5173?error=auth_failed");
+    }
+
+    // ✅ Send JWT to frontend
+    res.redirect(`http://localhost:5173/login?token=${req.user.token}`);
+  }
 );
 
 router.get("/logout", logoutController);
