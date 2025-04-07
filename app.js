@@ -3,6 +3,7 @@ import pool from "./config/db.js";
 import passport from "./config/passportConfig.js";
 
 import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import {
   loginController,
   signupController,
@@ -23,8 +24,12 @@ app.use(
 //Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
+//user routes
+
+app.use("/users", userRoutes);
 
 // Auth Routes
+
 app.use("/auth", authRoutes);
 app.get("/", (req, res) => {
   res.send("Server is up and running!");

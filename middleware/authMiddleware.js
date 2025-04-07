@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { jwtDecode } from "jwt-decode";
 import { JWT_SECRET } from "../config/auth.js";
 
 export const authMiddleware = (req, res, next) => {
@@ -8,7 +9,9 @@ export const authMiddleware = (req, res, next) => {
     return res.status(401).send("Access denied");
   }
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    const decoded = jwtDecode(token);
+    console.log(decoded);
+
     req.user = decoded;
     next();
   } catch (error) {
