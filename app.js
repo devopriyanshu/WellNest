@@ -4,6 +4,7 @@ import passport from "./config/passportConfig.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import expertRoutes from "./routes/expertRoutes.js";
 import {
   loginController,
   signupController,
@@ -24,13 +25,15 @@ app.use(
 //Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
-//user routes
+//Expert routes
+app.use("/experts", expertRoutes);
 
+//user routes
 app.use("/users", userRoutes);
 
 // Auth Routes
-
 app.use("/auth", authRoutes);
+
 app.get("/", (req, res) => {
   res.send("Server is up and running!");
 });
