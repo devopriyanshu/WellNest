@@ -3,17 +3,19 @@ import {
   findExpertByEmail,
   findExpertById,
   registerExpertModel,
-  updateExpertInfo,
+  updateExpertModel,
 } from "../models/expertModel.js";
 
 export const registerExpertService = async (data) => {
-  const existing = await findExpertByEmail(data.email);
+  const existing = await findExpertByEmail(data.contact.email);
   if (existing) {
     throw new Error("Expert with this email already exists");
   }
+
   const expert = await registerExpertModel(data);
   return expert;
 };
+
 export const updateExpertService = async (expertId, updateData) => {
   const expert = await findExpertById(expertId);
 
@@ -21,6 +23,6 @@ export const updateExpertService = async (expertId, updateData) => {
     throw new Error("expert not found");
   }
 
-  const updated = await updateExpertInfo(expertId, updateData);
+  const updated = await updateExpertModel(expertId, updateData);
   return updated;
 };
