@@ -237,19 +237,84 @@ export const findExpertById = async (id) => {
   return result.rows[0];
 };
 
+const dayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+function getFormattedAvailability(days) {
+  const sortedDays = dayOrder.filter((day) => days.includes(day));
+  const result = [];
+  let start = null;
+
+  for (let i = 0; i <= sortedDays.length; i++) {
+    if (start === null) start = sortedDays[i];
+    const nextDay = sortedDays[i + 1];
+    const currentIndex = dayOrder.indexOf(sortedDays[i]);
+    const expectedNext = dayOrder[currentIndex + 1];
+
+    if (nextDay !== expectedNext) {
+      result.push(
+        start === sortedDays[i] ? start : `${start}-${sortedDays[i]}`
+      );
+      start = null;
+    }
+  }
+
+  return result.join(", ");
+}
+
 export const listExpertModel = async (page = 1, limit = 10) => {
-  const offset = (page - 1) * 10;
-  const expertQuery = `SELECT id, name, category, profile_image ,experience FROM experts ORDER BY id DESC LIMIT $1 OFFSET $2`;
+  const offset = (page - 1) * limit;
+
+  const expertQuery = `
+    SELECT id, name, category, profile_image, experience 
+    FROM experts 
+    ORDER BY id DESC 
+    LIMIT $1 OFFSET $2
+  `;
+
   const experts = await pool.query(expertQuery, [limit, offset]);
+  const results = [];
 
   for (const expert of experts.rows) {
-    const [availabilityRes, formatRes, specialtiesRes] = await Promise.all([
+    const [formatRes, availabilityRes, specialtiesRes] = await Promise.all([
       pool.query(
-        `SELECT expert_id, array_agg(DISTINCT format) AS formats
-        FROM expert_services WHERE expert_id = $1
-        GROUP BY expert_id;`,
+        `SELECT array_agg(DISTINCT format) AS formats
+         FROM expert_services 
+         WHERE expert_id = $1`,
+        [expert.id]
+      ),
+      pool.query(
+        `SELECT day 
+         FROM expert_availability 
+         WHERE expert_id = $1 AND selected = true`,
+        [expert.id]
+      ),
+      pool.query(
+        `SELECT array_agg(DISTINCT value) AS specialties 
+         FROM expert_specialties 
+         WHERE expert_id = $1`,
         [expert.id]
       ),
     ]);
+
+    const formats = formatRes.rows[0]?.formats || [];
+    const days = availabilityRes.rows.map((r) => r.day);
+    const specialties = specialtiesRes.rows[0]?.specialties || [];
+
+    results.push({
+      id: expert.id,
+      name: expert.name,
+      category: expert.category,
+      rating: 0, // placeholder
+      reviewCount: 0, // placeholder
+      location: formats.join(" & ") || "Unknown", // "Online & In-person"
+      experience: expert.experience,
+      image: expert.profile_image || "/api/placeholder/600/400",
+      description: `Specialist in ${specialties.join(", ")}`,
+      availability: getFormattedAvailability(days),
+      formats,
+      specialties,
+    });
   }
+
+  return results;
 };

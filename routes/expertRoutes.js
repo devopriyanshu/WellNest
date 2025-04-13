@@ -1,4 +1,5 @@
 import {
+  listExpertsController,
   registerExpertController,
   updateExpertController,
 } from "../controllers/expertController.js";
@@ -8,5 +9,6 @@ const router = Router();
 
 router.post("/register", registerExpertController);
 router.put("/:id", updateExpertController);
+router.get("/list", listExpertsController);
 
 export default router;
