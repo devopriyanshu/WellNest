@@ -1,8 +1,12 @@
 import { Router } from "express";
-import { registerCenterController } from "../controllers/centerController.js";
+import {
+  listCenterController,
+  registerCenterController,
+} from "../controllers/centerController.js";
 
 const router = Router();
 
 router.post("/register", registerCenterController);
+router.get("/list", listCenterController);
 
 export default router;

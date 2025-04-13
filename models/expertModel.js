@@ -236,3 +236,20 @@ export const findExpertById = async (id) => {
   const result = await pool.query("SELECT * FROM experts WHERE id = $1", [id]);
   return result.rows[0];
 };
+
+export const listExpertModel = async (page = 1, limit = 10) => {
+  const offset = (page - 1) * 10;
+  const expertQuery = `SELECT id, name, category, profile_image ,experience FROM experts ORDER BY id DESC LIMIT $1 OFFSET $2`;
+  const experts = await pool.query(expertQuery, [limit, offset]);
+
+  for (const expert of experts.rows) {
+    const [availabilityRes, formatRes, specialtiesRes] = await Promise.all([
+      pool.query(
+        `SELECT expert_id, array_agg(DISTINCT format) AS formats
+        FROM expert_services WHERE expert_id = $1
+        GROUP BY expert_id;`,
+        [expert.id]
+      ),
+    ]);
+  }
+};
