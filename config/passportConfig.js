@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { findUserByEmail, createUser } from "../models/userModel.js";
+import { findUserByEmail, createUser } from "../models/centralUserModel.js";
 import { generateToken } from "../utils/jwtUtility.js";
 
 passport.use(
@@ -22,7 +22,7 @@ passport.use(
         }
 
         // ✅ Generate JWT Token
-        const token = generateToken(user.id);
+        const token = generateToken(user.id, user.role);
 
         // ✅ Pass user and token
         return done(null, { user, token });

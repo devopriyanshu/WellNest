@@ -2,8 +2,8 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config/auth.js";
 
 // Sign a JWT token
-export const generateToken = (userId) => {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: "1d" });
+export const generateToken = (userId, role) => {
+  return jwt.sign({ id: userId, role }, JWT_SECRET, { expiresIn: "7d" });
 };
 
 // Verify JWT token

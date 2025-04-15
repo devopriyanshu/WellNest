@@ -1,11 +1,11 @@
-import { createUser, findUserByEmail } from "../models/userModel.js";
+import { createUser, findUserByEmail } from "../models/centralUserModel.js";
 import { generateToken } from "../utils/jwtUtility.js";
 import { comparepassword, hashpassword } from "../utils/passwordUtil.js";
 import { OAuth2Client } from "google-auth-library";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-export const signup = async (email, password) => {
+export const signup = async (email, password, role) => {
   const existingUser = await findUserByEmail(email);
   if (existingUser) {
     throw new Error("user already exists");
@@ -14,7 +14,7 @@ export const signup = async (email, password) => {
   const hashedPassword = await hashpassword(password);
   console.log(hashedPassword);
 
-  const newUser = await createUser(name, email, hashedPassword);
+  const newUser = await createUser(name, email, hashedPassword, role);
   console.log(newUser);
 
   const token = generateToken(newUser.id);
@@ -30,7 +30,7 @@ export const login = async (email, password) => {
   if (!isValid) {
     throw new Error("Invalid email or password");
   }
-  const token = generateToken(user.id);
+  const token = generateToken(user.id, user.role);
   return { user, token };
 };
 
@@ -52,7 +52,7 @@ export const googleSignInService = async (idToken) => {
       user = await createUser(name, email, null);
     }
 
-    const token = generateToken(user.id);
+    const token = generateToken(user.id, user.role || "user");
 
     return { user, token };
   } catch (error) {
