@@ -6,6 +6,7 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import expertRoutes from "./routes/expertRoutes.js";
 import centerRoutes from "./routes/centerRoutes.js";
+import logRoutes from "./routes/logRoutes.js";
 import {
   loginController,
   signupController,
@@ -36,6 +37,7 @@ app.use("/users", userRoutes);
 app.use("/auth", authRoutes);
 
 app.use("/centers", centerRoutes);
+app.use("/api", logRoutes);
 
 app.get("/", (req, res) => {
   res.send("Server is up and running!");
