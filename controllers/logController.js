@@ -2,6 +2,7 @@ import {
   fetchActivityLogs,
   fetchAppointments,
   fetchMeals,
+  fetchSleepLogs,
 } from "../services/logServices.js";
 
 // export const getSleepLogs = async (req, res) => {

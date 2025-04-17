@@ -25,8 +25,9 @@ export const getActivityLogsByUserId = async (userId) => {
 };
 
 export const getMealsByUserId = async (userId) => {
-  const result = await pool.query("SELECT * FROM meals WHERE user_id = $1", [
-    userId,
-  ]);
+  const result = await pool.query(
+    "SELECT * FROM meal_logs WHERE user_id = $1",
+    [userId]
+  );
   return result.rows;
 };
