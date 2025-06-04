@@ -87,25 +87,31 @@ export const updateMealLog = async (userId, mealId, updatedData) => {
 };
 
 export const addSleepLog = async (userId, logData) => {
-  const { hours, quality, notes } = logData;
+  const { hours, quality, notes, date } = logData;
+  if (!userId || !date) {
+    throw new Error("Missing userId or date");
+  }
 
   const result = await pool.query(
     `
-    INSERT INTO sleep_logs (user_id, hours, quality, notes)
-    VALUES ($1, $2, $3, $4)
+    INSERT INTO sleep_logs (user_id, hours, quality, notes, date)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING *;
     `,
-    [userId, hours, quality, notes]
+    [userId, hours, quality, notes, date]
   );
 
   return result.rows[0];
 };
 export const addActivityLog = async (userId, logData) => {
+  console.log(userId);
   const { activity, date, duration, calories, notes } = logData;
-
+  if (!userId || !date) {
+    throw new Error("Missing userId or date");
+  }
   const result = await pool.query(
     `
-    INSERT INTO activities (user_id, activity, date, duration, calories, notes)
+    INSERT INTO activity_logs (user_id, activities, date, duration, calories, notes)
     VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING *;
     `,
@@ -119,7 +125,7 @@ export const addMealLog = async (userId, logData) => {
 
   const result = await pool.query(
     `
-    INSERT INTO meals (user_id, name, date, time, calories, protein, carbs, fat)
+    INSERT INTO meal_logs (user_id, name, date, time, calories, protein, carbs, fat)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING *;
     `,

@@ -34,6 +34,7 @@ app.use("/experts", expertRoutes);
 app.use("/users", userRoutes);
 
 // Auth Routes
+app.use("/logs", logRoutes);
 app.use("/auth", authRoutes);
 
 app.use("/centers", centerRoutes);

@@ -24,12 +24,12 @@ router.put("/meal/:logId", authMiddleware, updateMealLogController);
 router.put("/sleep/:logId", authMiddleware, updateSleepLogController);
 
 // Add a sleep log
-router.post("/sleep", addSleepLogController);
+router.post("/sleep", authMiddleware, addSleepLogController);
 
 // Add an activity log
-router.post("/activity", addActivityLogController);
+router.post("/activity", authMiddleware, addActivityLogController);
 
 // Add a meal log
-router.post("/meal", addMealLogController);
+router.post("/meal", authMiddleware, addMealLogController);
 
 export default router;

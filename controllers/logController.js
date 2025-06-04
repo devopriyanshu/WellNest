@@ -112,7 +112,8 @@ export const updateSleepLogController = async (req, res) => {
 };
 
 export const addSleepLogController = async (req, res) => {
-  const userId = req.user.id; // assuming auth middleware adds this
+  // console.log(req.user);
+  const userId = req.user.userId; // assuming auth middleware adds this
   const logData = req.body;
 
   try {
@@ -125,7 +126,7 @@ export const addSleepLogController = async (req, res) => {
 
 // Activity Log Controller
 export const addActivityLogController = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
   const logData = req.body;
 
   try {
@@ -138,7 +139,7 @@ export const addActivityLogController = async (req, res) => {
 
 // Meal Log Controller
 export const addMealLogController = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.userId;
   const logData = req.body;
 
   try {
