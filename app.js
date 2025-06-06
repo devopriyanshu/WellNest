@@ -33,6 +33,8 @@ app.use("/experts", expertRoutes);
 //user routes
 app.use("/users", userRoutes);
 
+app.use("/api/appointments", appointmentRoutes);
+
 // Auth Routes
 app.use("/logs", logRoutes);
 app.use("/auth", authRoutes);
