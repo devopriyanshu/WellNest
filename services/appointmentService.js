@@ -1,4 +1,7 @@
-import { createAppointment, deleteAppointment } from "models/appointmentModel";
+import {
+  createAppointment,
+  deleteAppointment,
+} from "../models/appointmentModel.js";
 
 export const createNewAppointment = async (data) => {
   return await createAppointment(data);

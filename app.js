@@ -7,6 +7,7 @@ import userRoutes from "./routes/userRoutes.js";
 import expertRoutes from "./routes/expertRoutes.js";
 import centerRoutes from "./routes/centerRoutes.js";
 import logRoutes from "./routes/logRoutes.js";
+import appointmentRoutes from "./routes/appointmentRoutes.js";
 import {
   loginController,
   signupController,

@@ -1,7 +1,7 @@
 import {
   createNewAppointment,
   removeAppointment,
-} from "../services/appointmentService";
+} from "../services/appointmentService.js";
 
 export const createAppointmentController = async (req, res) => {
   try {
