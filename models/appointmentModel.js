@@ -14,10 +14,15 @@ export const createAppointment = async (data) => {
   return result.rows[0];
 };
 
-export const deleteAppointment = async (id) => {
-  const result = await pool.query(
-    `DELETE FROM appointments WHERE id = $1 RETURNING *`,
-    [id]
-  );
-  return result.rows[0];
+export const deleteAppointment = async (appointmentId, userId) => {
+  const query = `
+    DELETE FROM appointments
+    WHERE id = $1 AND user_id = $2
+    RETURNING *;
+  `;
+
+  const values = [appointmentId, userId];
+
+  const result = await pool.query(query, values);
+  return result.rowCount > 0;
 };

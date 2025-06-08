@@ -7,6 +7,6 @@ export const createNewAppointment = async (data) => {
   return await createAppointment(data);
 };
 
-export const removeAppointment = async (id) => {
-  return await deleteAppointment(id);
+export const removeAppointment = async (id, userId) => {
+  return await deleteAppointment(id, userId);
 };
