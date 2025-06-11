@@ -1,7 +1,15 @@
 import pool from "../config/db.js";
 
+// Create a new appointment
 export const createAppointment = async (data) => {
-  const { user_id, expert_id, appointment_date, type, status, notes } = data;
+  const {
+    user_id,
+    expert_id,
+    appointment_date,
+    type,
+    status = "pending",
+    notes,
+  } = data;
 
   const result = await pool.query(
     `INSERT INTO appointments 
@@ -14,15 +22,14 @@ export const createAppointment = async (data) => {
   return result.rows[0];
 };
 
+// Delete appointment (only if created by user)
 export const deleteAppointment = async (appointmentId, userId) => {
-  const query = `
-    DELETE FROM appointments
-    WHERE id = $1 AND user_id = $2
-    RETURNING *;
-  `;
+  const result = await pool.query(
+    `DELETE FROM appointments
+     WHERE id = $1 AND user_id = $2
+     RETURNING *`,
+    [appointmentId, userId]
+  );
 
-  const values = [appointmentId, userId];
-
-  const result = await pool.query(query, values);
   return result.rowCount > 0;
 };
