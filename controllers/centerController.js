@@ -1,5 +1,9 @@
 import { listCenterModel } from "../models/centreModel.js";
-import { registerCenterService } from "../services/centreService.js";
+import {
+  getCenterDetailByIdService,
+  registerCenterService,
+  updateCenterService,
+} from "../services/centreService.js";
 
 export const registerCenterController = async (req, res) => {
   try {
@@ -24,5 +28,30 @@ export const listCenterController = async (req, res) => {
   } catch (err) {
     console.error("Error fetching centers:", err);
     res.status(500).json({ error: "Failed to fetch centers" });
+  }
+};
+export const getCenterByIdController = async (req, res) => {
+  try {
+    const center = await getCenterDetailByIdService(req.params.id);
+    if (!center) {
+      return res.status(404).json({ error: "Center not found" });
+    }
+    res.status(200).json(center);
+  } catch (err) {
+    console.error("Get Center Error:", err);
+    res.status(500).json({ error: "Failed to fetch center" });
+  }
+};
+
+// Update center info
+export const updateCenterByIdController = async (req, res) => {
+  try {
+    const updated = await updateCenterService(req.params.id, req.body);
+    res
+      .status(200)
+      .json({ message: "Center updated successfully", data: updated });
+  } catch (err) {
+    console.error("Update Center Error:", err);
+    res.status(500).json({ error: "Failed to update center" });
   }
 };

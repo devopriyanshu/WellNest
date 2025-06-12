@@ -202,3 +202,66 @@ export const listCenterModel = async (page = 1, limit = 10) => {
 
   return results;
 };
+
+// Get full center details by ID
+export const getCenterDetailByIdModel = async (centerId) => {
+  const centerRes = await pool.query(`SELECT * FROM centers WHERE id = $1`, [
+    centerId,
+  ]);
+  if (centerRes.rows.length === 0) return null;
+
+  const [amenities, equipment, services, trainers, pricing, schedule, address] =
+    await Promise.all([
+      pool.query(`SELECT value FROM center_amenities WHERE center_id = $1`, [
+        centerId,
+      ]),
+      pool.query(`SELECT value FROM center_equipment WHERE center_id = $1`, [
+        centerId,
+      ]),
+      pool.query(
+        `SELECT name, icon, description FROM center_services WHERE center_id = $1`,
+        [centerId]
+      ),
+      pool.query(
+        `SELECT name, specialty, bio, image FROM center_trainers WHERE center_id = $1`,
+        [centerId]
+      ),
+      pool.query(
+        `SELECT type, price FROM center_pricing WHERE center_id = $1`,
+        [centerId]
+      ),
+      pool.query(
+        `SELECT day_of_week, is_open, opening_time, closing_time FROM center_schedule WHERE center_id = $1`,
+        [centerId]
+      ),
+      pool.query(`SELECT * FROM center_addresses WHERE center_id = $1`, [
+        centerId,
+      ]),
+    ]);
+
+  return {
+    ...centerRes.rows[0],
+    amenities: amenities.rows,
+    equipment: equipment.rows,
+    services: services.rows,
+    trainers: trainers.rows,
+    pricing: pricing.rows,
+    schedule: schedule.rows,
+    address: address.rows[0] || null,
+  };
+};
+
+// Update center basic info only (extend this later as needed)
+export const updateCenterByIdModel = async (centerId, updateData) => {
+  const { name, category, description, phone, email, website, offers } =
+    updateData;
+
+  const result = await pool.query(
+    `UPDATE centers SET name = $1, category = $2, description = $3,
+     phone = $4, email = $5, website = $6, offers = $7
+     WHERE id = $8 RETURNING *`,
+    [name, category, description, phone, email, website, offers, centerId]
+  );
+
+  return result.rows[0];
+};
