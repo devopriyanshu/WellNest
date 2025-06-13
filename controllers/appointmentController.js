@@ -6,7 +6,9 @@ import {
 // Create appointment controller
 export const createAppointmentController = async (req, res) => {
   try {
-    const userId = req.user.userId; // From auth middleware
+    const userId = req.user.id; // From auth middleware
+    console.log(userId);
+
     const { expert_id, appointment_date, type, notes } = req.body;
 
     const appointment = await createNewAppointment({
@@ -28,7 +30,7 @@ export const createAppointmentController = async (req, res) => {
 export const deleteAppointmentController = async (req, res) => {
   try {
     const appointmentId = req.params.id;
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     const deleted = await removeAppointment(appointmentId, userId);
 
