@@ -7,7 +7,6 @@ import {
 export const createAppointmentController = async (req, res) => {
   try {
     const userId = req.user.id; // From auth middleware
-    console.log(userId);
 
     const { expert_id, appointment_date, type, notes } = req.body;
 

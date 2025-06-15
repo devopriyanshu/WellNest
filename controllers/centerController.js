@@ -21,9 +21,14 @@ export const registerCenterController = async (req, res) => {
 export const listCenterController = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
+  const filters = {
+    category: req.query.category,
+    city: req.query.city,
+    search: req.query.search,
+  };
 
   try {
-    const centers = await listCenterModel(page, limit);
+    const centers = await listCenterModel(filters, page, limit);
     res.status(200).json({ centers, page });
   } catch (err) {
     console.error("Error fetching centers:", err);

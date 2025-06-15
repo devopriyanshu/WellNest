@@ -131,7 +131,7 @@ export const findCenterByEmail = async (email) => {
   return result.rows[0];
 };
 
-export const listCenterModel = async (page = 1, limit = 10) => {
+export const listCenterModel = async (filters = {}, page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
   const today = new Date();
   const weekdays = [
@@ -145,54 +145,86 @@ export const listCenterModel = async (page = 1, limit = 10) => {
   ];
   const todayName = weekdays[today.getDay()];
 
-  const cenetersQuery = `SELECT  id, name , category , description FROM centers ORDER BY id DESC LIMIT $1 OFFSET $2`;
+  let query = `
+    SELECT c.id, c.name, c.category, c.description, c.address
+    FROM centers c
+  `;
 
-  const centers = await pool.query(cenetersQuery, [limit, offset]);
+  const values = [];
+  const conditions = [];
 
+  // Filter: category
+  if (filters.category) {
+    values.push(filters.category);
+    conditions.push(`c.category ILIKE $${values.length}`);
+  }
+
+  // Filter: city or address (since address is a text field)
+  if (filters.city) {
+    values.push(`%${filters.city}%`);
+    conditions.push(`c.address ILIKE $${values.length}`);
+  }
+
+  // Search: match name, category, or address
+  if (filters.search) {
+    const keyword = `%${filters.search}%`;
+    values.push(keyword); // name
+    values.push(keyword); // category
+    values.push(keyword); // address
+    conditions.push(
+      `(c.name ILIKE $${values.length - 2} OR c.category ILIKE $${
+        values.length - 1
+      } OR c.address ILIKE $${values.length})`
+    );
+  }
+
+  if (conditions.length > 0) {
+    query += `WHERE ${conditions.join(" AND ")} `;
+  }
+
+  values.push(limit);
+  values.push(offset);
+  query += `ORDER BY c.id DESC LIMIT $${values.length - 1} OFFSET $${
+    values.length
+  }`;
+
+  const centers = await pool.query(query, values);
   const results = [];
 
   for (const center of centers.rows) {
-    const [amenitiesRes, pricingRes, scheduleRes, addressRes] =
-      await Promise.all([
-        pool.query(`SELECT value FROM center_amenities WHERE center_id = $1`, [
-          center.id,
-        ]),
-        pool.query(
-          `SELECT price FROM center_pricing WHERE center_id = $1 AND type = 'monthly'`,
-          [center.id]
-        ),
-        pool.query(
-          `SELECT opening_time, closing_time FROM center_schedule WHERE center_id = $1 AND is_open = true AND day_of_week = $2 ORDER BY opening_time ASC
-        LIMIT 1`,
-          [center.id, todayName]
-        ),
-        pool.query(
-          `SELECT address_line, city FROM center_addresses WHERE center_id = $1`,
-          [center.id]
-        ),
-      ]);
-    let address = "";
-    if (addressRes.rows.length > 0) {
-      const { address_line, city } = addressRes.rows[0];
-      address = `${address_line}, ${city}`;
-    }
-    let price = "";
-    if (pricingRes.rows[0] > 0) {
-      price = pricingRes.rows[0].price;
-    }
+    const [amenitiesRes, pricingRes, scheduleRes] = await Promise.all([
+      pool.query(`SELECT value FROM center_amenities WHERE center_id = $1`, [
+        center.id,
+      ]),
+      pool.query(
+        `SELECT price FROM center_pricing WHERE center_id = $1 AND type = 'monthly'`,
+        [center.id]
+      ),
+      pool.query(
+        `SELECT opening_time, closing_time 
+         FROM center_schedule 
+         WHERE center_id = $1 AND is_open = true AND day_of_week = $2 
+         ORDER BY opening_time ASC 
+         LIMIT 1`,
+        [center.id, todayName]
+      ),
+    ]);
+
+    const price = pricingRes.rows.length > 0 ? pricingRes.rows[0].price : "";
 
     const openHours = scheduleRes.rows.length
       ? `${scheduleRes.rows[0].opening_time} - ${scheduleRes.rows[0].closing_time}`
       : "Unavailable";
+
     results.push({
       id: center.id,
       name: center.name,
       category: center.category,
-      rating: 0, // placeholder
-      reviewCount: 0, // placeholder
-      location: address, // placeholder
+      rating: 0,
+      reviewCount: 0,
+      location: center.address || "",
       distance: null,
-      image: `/api/placeholder/600/400`, // hardcoded or replace later
+      image: `/api/placeholder/600/400`,
       description: center.description,
       amenities: amenitiesRes.rows.map((r) => r.value),
       prices: price,
