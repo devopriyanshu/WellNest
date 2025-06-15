@@ -261,37 +261,69 @@ function getFormattedAvailability(days) {
   return result.join(", ");
 }
 
-export const listExpertModel = async (page = 1, limit = 10) => {
+export const listExpertModel = async (filters = {}, page = 1, limit = 10) => {
   const offset = (page - 1) * limit;
+  const values = [];
+  const conditions = [];
 
-  const expertQuery = `
-    SELECT id, name, category, profile_image, experience 
-    FROM experts 
-    ORDER BY id DESC 
-    LIMIT $1 OFFSET $2
+  let query = `
+    SELECT DISTINCT e.id, e.name, e.category, e.profile_image, e.experience
+    FROM experts e
+    LEFT JOIN expert_specialties es ON es.expert_id = e.id
   `;
 
-  const experts = await pool.query(expertQuery, [limit, offset]);
+  // Filter by category
+  if (filters.category) {
+    values.push(`%${filters.category}%`);
+    conditions.push(`e.category ILIKE $${values.length}`);
+  }
+
+  // Search by name, category, or specialty
+  if (filters.search) {
+    const keyword = `%${filters.search}%`;
+    values.push(keyword, keyword, keyword);
+    conditions.push(`
+      (
+        e.name ILIKE $${values.length - 2} OR
+        e.category ILIKE $${values.length - 1} OR
+        es.value ILIKE $${values.length}
+      )
+    `);
+  }
+
+  // Apply WHERE clause if conditions exist
+  if (conditions.length > 0) {
+    query += ` WHERE ${conditions.join(" AND ")} `;
+  }
+
+  // Sorting
+  let sortField = "e.id";
+  if (filters.sortBy === "experience") {
+    sortField = "e.experience";
+  } else if (filters.sortBy === "rating") {
+    sortField = "e.rating"; // Assuming you’ll add this field
+  }
+
+  values.push(limit, offset);
+  query += ` ORDER BY ${sortField} DESC LIMIT $${values.length - 1} OFFSET $${
+    values.length
+  }`;
+
+  const experts = await pool.query(query, values);
   const results = [];
 
   for (const expert of experts.rows) {
     const [formatRes, availabilityRes, specialtiesRes] = await Promise.all([
       pool.query(
-        `SELECT array_agg(DISTINCT format) AS formats
-         FROM expert_services 
-         WHERE expert_id = $1`,
+        `SELECT array_agg(DISTINCT format) AS formats FROM expert_services WHERE expert_id = $1`,
         [expert.id]
       ),
       pool.query(
-        `SELECT day 
-         FROM expert_availability 
-         WHERE expert_id = $1 AND selected = true`,
+        `SELECT day FROM expert_availability WHERE expert_id = $1 AND selected = true`,
         [expert.id]
       ),
       pool.query(
-        `SELECT array_agg(DISTINCT value) AS specialties 
-         FROM expert_specialties 
-         WHERE expert_id = $1`,
+        `SELECT array_agg(DISTINCT value) AS specialties FROM expert_specialties WHERE expert_id = $1`,
         [expert.id]
       ),
     ]);
@@ -304,9 +336,9 @@ export const listExpertModel = async (page = 1, limit = 10) => {
       id: expert.id,
       name: expert.name,
       category: expert.category,
-      rating: 0, // placeholder
-      reviewCount: 0, // placeholder
-      location: formats.join(" & ") || "Unknown", // "Online & In-person"
+      rating: 0,
+      reviewCount: 0,
+      location: formats.join(" & ") || "Unknown",
       experience: expert.experience,
       image: expert.profile_image || "/api/placeholder/600/400",
       description: `Specialist in ${specialties.join(", ")}`,

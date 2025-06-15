@@ -37,7 +37,13 @@ export const listExpertsController = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const experts = await listExpertModel(page, limit);
+    const filters = {
+      search: req.query.search || null,
+      category: req.query.category || null,
+      sortBy: req.query.sortBy || null, // 'experience' or 'rating'
+    };
+
+    const experts = await listExpertModel(filters, page, limit);
 
     res.status(200).json({
       success: true,
