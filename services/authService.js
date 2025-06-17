@@ -1,9 +1,6 @@
 import { createUser, findUserByEmail } from "../models/centralUserModel.js";
 import { generateToken } from "../utils/jwtUtility.js";
 import { comparepassword, hashpassword } from "../utils/passwordUtil.js";
-import { OAuth2Client } from "google-auth-library";
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const signup = async (email, password, role) => {
   const existingUser = await findUserByEmail(email);
@@ -14,7 +11,7 @@ export const signup = async (email, password, role) => {
   const hashedPassword = await hashpassword(password);
   console.log(hashedPassword);
 
-  const newUser = await createUser(name, email, hashedPassword, role);
+  const newUser = await createUser(name, email, hashedPassword, role, "local");
   console.log(newUser);
 
   const token = generateToken(newUser.id);
@@ -34,29 +31,29 @@ export const login = async (email, password) => {
   return { user, token };
 };
 
-export const googleSignInService = async (idToken) => {
-  try {
-    const ticket = await client.verifyIdToken({
-      idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+// export const googleSignInService = async (idToken) => {
+//   try {
+//     const ticket = await client.verifyIdToken({
+//       idToken,
+//       audience: process.env.GOOGLE_CLIENT_ID,
+//     });
 
-    const payload = ticket.getPayload();
-    console.log("payload", payload);
+//     const payload = ticket.getPayload();
+//     console.log("payload", payload);
 
-    const { email, name } = payload;
+//     const { email, name } = payload;
 
-    let user = await findUserByEmail(email);
+//     let user = await findUserByEmail(email);
 
-    if (!user) {
-      user = await createUser(name, email, null);
-    }
+//     if (!user) {
+//       user = await createUser(name, email, null);
+//     }
 
-    const token = generateToken(user.id, user.role || "user");
+//     const token = generateToken(user.id, user.role || "user");
 
-    return { user, token };
-  } catch (error) {
-    console.error("Google Token Verification Failed:", error);
-    throw new Error("Invalid or expired Google token");
-  }
-};
+//     return { user, token };
+//   } catch (error) {
+//     console.error("Google Token Verification Failed:", error);
+//     throw new Error("Invalid or expired Google token");
+//   }
+// };

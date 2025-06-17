@@ -18,7 +18,13 @@ passport.use(
         let user = await findUserByEmail(email);
 
         if (!user) {
-          user = await createUser(profile.displayName, email);
+          user = await createUser(
+            profile.displayName,
+            email,
+            null,
+            "user",
+            "google"
+          );
         }
 
         // ✅ Generate JWT Token

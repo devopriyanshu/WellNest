@@ -1,7 +1,7 @@
 import express from "express";
 import pool from "./config/db.js";
 import passport from "./config/passportConfig.js";
-
+import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import expertRoutes from "./routes/expertRoutes.js";
@@ -16,7 +16,7 @@ import session from "express-session";
 // import { authMiddleware } from "middleware/authMiddleware.js";
 
 const app = express();
-
+app.use(cors());
 app.use(express.json()); // Middleware for parsing JSON
 
 // Session setup

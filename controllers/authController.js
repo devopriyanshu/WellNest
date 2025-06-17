@@ -1,18 +1,22 @@
-import { googleSignInService, login, signup } from "../services/authService.js";
+import { login, signup } from "../services/authService.js";
 
 export const signupController = async (req, res) => {
-  console.log("Request Body (Before parsing):", req.body);
-  const { email, password } = req.body;
+  console.log("📥 Request Body:", req.body);
+
+  const { email, password, role } = req.body;
 
   try {
-    const { user, token } = await signup(email, password);
+    const { user, token } = await signup(email, password, role);
+    console.log("✅ Signup successful:", user);
+
     res.status(201).json({
       message: "User created successfully",
       user,
       token,
     });
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    console.error("❌ Signup error:", error);
+    res.status(400).json({ error: error.message || "Signup failed" });
   }
 };
 

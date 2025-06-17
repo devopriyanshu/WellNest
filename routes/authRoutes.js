@@ -1,8 +1,8 @@
 import { Router } from "express";
 import passport from "../config/passportConfig.js";
 import {
-  googleAuthController,
   logoutController,
+  signupController,
 } from "../controllers/authController.js";
 
 const router = Router();
@@ -26,5 +26,7 @@ router.get(
 );
 
 router.get("/logout", logoutController);
+
+router.post("/signup", signupController);
 
 export default router;
