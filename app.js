@@ -8,6 +8,7 @@ import expertRoutes from "./routes/expertRoutes.js";
 import centerRoutes from "./routes/centerRoutes.js";
 import logRoutes from "./routes/logRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
+import centralUserRoutes from "./routes/centralUserRoutes.js";
 import {
   loginController,
   signupController,
@@ -33,21 +34,22 @@ app.use("/experts", expertRoutes);
 
 //user routes
 app.use("/users", userRoutes);
+app.use("/api/user", centralUserRoutes);
 
-app.use("/api/appointments", appointmentRoutes);
+app.use("/appointments", appointmentRoutes);
 
 // Auth Routes
 app.use("/logs", logRoutes);
 app.use("/auth", authRoutes);
 
 app.use("/centers", centerRoutes);
-app.use("/api", logRoutes);
+app.use("/logs", logRoutes);
 
 app.get("/", (req, res) => {
   res.send("Server is up and running!");
 });
-app.post("/signup", signupController);
-app.post("/login", loginController);
+// app.post("/signup", signupController);
+// app.post("/login", loginController);
 // app.use("/auth", authRoutes);
 pool
   .connect()

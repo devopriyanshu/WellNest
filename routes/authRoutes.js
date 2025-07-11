@@ -1,6 +1,7 @@
 import { Router } from "express";
 import passport from "../config/passportConfig.js";
 import {
+  loginController,
   logoutController,
   signupController,
 } from "../controllers/authController.js";
@@ -25,7 +26,7 @@ router.get(
   }
 );
 
-router.get("/logout", logoutController);
+router.post("/login", loginController);
 
 router.post("/signup", signupController);
 

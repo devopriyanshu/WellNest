@@ -12,7 +12,7 @@ import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/dashboard-logs", authMiddleware, getUserDashboardLogs);
+router.get("/dashboard", authMiddleware, getUserDashboardLogs);
 
 // Update activity log
 router.put("/activity/:logId", authMiddleware, updateActivityLogController);
