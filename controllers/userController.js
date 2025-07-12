@@ -2,7 +2,7 @@ import { getUserById, updateUserService } from "../services/userService.js";
 
 export const getUserMe = async (req, res) => {
   try {
-    const userId = req.user.userId;
+    const userId = req.user.refId;
     const user = await getUserById(userId);
     res.json(user);
   } catch (err) {

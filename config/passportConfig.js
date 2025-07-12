@@ -28,6 +28,7 @@ passport.use(
         }
 
         // ✅ Generate JWT Token
+        console.log("User before token:", user);
         const token = generateToken(user.id, user.role);
 
         // ✅ Pass user and token

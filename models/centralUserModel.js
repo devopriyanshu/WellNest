@@ -2,24 +2,28 @@ import pool from "../config/db.js";
 
 export const findUserByEmail = async (email) => {
   const result = await pool.query(
-    "SELECT * FROM central_users WHERE email = $1",
+    "SELECT id, email, role FROM central_users WHERE email = $1",
     [email]
   );
   return result.rows[0];
 };
-export const findUserById = async (id) => {
-  const result = await pool.query("SELECT * FROM central_users WHERE id = $1", [
-    id,
-  ]);
+
+export const findCentralUserById = async (id) => {
+  const result = await pool.query(
+    "SELECT id, email, role FROM central_users WHERE id = $1",
+    [id]
+  );
   return result.rows[0];
 };
+
 export const createUser = async (name, email, password, role, provider) => {
   const result = await pool.query(
-    "INSERT INTO central_users ( name, email, password, role, provider) VALUES ($1, $2, $3, $4, $5) RETURNING id, email",
+    "INSERT INTO central_users (name, email, password, role, provider) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, role",
     [name, email, password || null, role, provider]
   );
   return result.rows[0];
 };
+
 // export const updateUserModel = async (id, data) => {
 //   const {
 //     full_name,
