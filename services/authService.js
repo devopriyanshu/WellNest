@@ -2,19 +2,20 @@ import { createUser, findUserByEmail } from "../models/centralUserModel.js";
 import { generateToken } from "../utils/jwtUtility.js";
 import { comparepassword, hashpassword } from "../utils/passwordUtil.js";
 
-export const signup = async (email, password, role) => {
+export const signup = async (email, password, role = "user") => {
   const existingUser = await findUserByEmail(email);
   if (existingUser) {
-    throw new Error("user already exists");
+    throw new Error("User already exists");
   }
+
   const name = email.split("@")[0];
   const hashedPassword = await hashpassword(password);
-  console.log(hashedPassword);
+  console.log("[🔐 Hashed Password]", hashedPassword);
 
   const newUser = await createUser(name, email, hashedPassword, role, "local");
-  console.log(newUser);
+  console.log("[👤 New User Created]", newUser);
 
-  const token = generateToken(newUser.id);
+  const token = generateToken(newUser.id, role); // pass role to token if needed
   return { user: newUser, token };
 };
 

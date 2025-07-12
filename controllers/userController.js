@@ -2,7 +2,9 @@ import { getUserById, updateUserService } from "../services/userService.js";
 
 export const getUserMe = async (req, res) => {
   try {
-    const userId = req.user.refId;
+    const userId = req.user.userId;
+    console.log(userId);
+
     const user = await getUserById(userId);
     res.json(user);
   } catch (err) {
@@ -22,6 +24,8 @@ export const updateUserControler = async (req, res) => {
     profile_picture,
     address,
     language_preference,
+    height,
+    weight,
   } = req.body;
 
   try {
@@ -34,6 +38,8 @@ export const updateUserControler = async (req, res) => {
       profile_picture,
       address,
       language_preference,
+      height,
+      weight,
     });
     res.status(200).json({
       message: "Profile updated successfully",
