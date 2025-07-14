@@ -47,7 +47,7 @@ import {
 //   };
 
 export const getUserDashboardLogs = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.refId;
 
   try {
     const [sleepLogs, appointments, activityLogs, meals] = await Promise.all([
@@ -71,7 +71,7 @@ export const getUserDashboardLogs = async (req, res) => {
 
 // Activity Log Controller
 export const updateActivityLogController = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.refId;
   const { logId } = req.params;
   const updatedData = req.body;
 
@@ -85,7 +85,7 @@ export const updateActivityLogController = async (req, res) => {
 
 // Meal Log Controller
 export const updateMealLogController = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.refId;
   const { logId } = req.params;
   const updatedData = req.body;
 
@@ -99,7 +99,7 @@ export const updateMealLogController = async (req, res) => {
 
 // Sleep Log Controller
 export const updateSleepLogController = async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user.refId;
   const { logId } = req.params;
   const updatedData = req.body;
 
@@ -113,7 +113,7 @@ export const updateSleepLogController = async (req, res) => {
 
 export const addSleepLogController = async (req, res) => {
   // console.log(req.user);
-  const userId = req.user.userId; // assuming auth middleware adds this
+  const userId = req.user.refId; // assuming auth middleware adds this
   const logData = req.body;
 
   try {
@@ -126,7 +126,7 @@ export const addSleepLogController = async (req, res) => {
 
 // Activity Log Controller
 export const addActivityLogController = async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.refId;
   const logData = req.body;
 
   try {
@@ -139,7 +139,7 @@ export const addActivityLogController = async (req, res) => {
 
 // Meal Log Controller
 export const addMealLogController = async (req, res) => {
-  const userId = req.user.userId;
+  const userId = req.user.refId;
   const logData = req.body;
 
   try {

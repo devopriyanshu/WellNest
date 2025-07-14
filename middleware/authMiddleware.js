@@ -14,29 +14,29 @@ export const authMiddleware = async (req, res, next) => {
     const decoded = jwt.verify(token, JWT_SECRET); // ✅ Securely verify
 
     const { id, role } = decoded;
-    // let refId = null;
+    let refId = null;
     console.log("decoded", decoded);
 
-    // if (role === "user") {
-    //   const user = await findUsersById(id); // central_users.id
-    //   if (!user) return res.status(404).send("User not found");
+    if (role === "user") {
+      const user = await findUsersById(id); // central_users.id
+      if (!user) return res.status(404).send("User not found");
 
-    //   refId = user.id;
-    // } else if (role === "expert") {
-    //   const expert = await findExpertById(id);
-    //   if (!expert) return res.status(404).send("Expert not found");
-    //   refId = expert.id;
-    // } else if (role === "center") {
-    //   const center = await findCenterById(id);
-    //   if (!center) return res.status(404).send("Center not found");
-    //   refId = center.id;
-    // }
-    // console.log(refId);
+      refId = user.id;
+    } else if (role === "expert") {
+      const expert = await findExpertById(id);
+      if (!expert) return res.status(404).send("Expert not found");
+      refId = expert.id;
+    } else if (role === "center") {
+      const center = await findCenterById(id);
+      if (!center) return res.status(404).send("Center not found");
+      refId = center.id;
+    }
+    console.log(refId);
 
     req.user = {
       userId: id,
       role,
-      // refId,
+      refId,
     };
 
     next();
