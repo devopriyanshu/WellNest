@@ -239,26 +239,44 @@ export const findExpertById = async (id) => {
 
 const dayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-function getFormattedAvailability(days) {
+// Converts "monday" to "Mon"
+function toShortDay(day) {
+  const map = {
+    monday: "Mon",
+    tuesday: "Tue",
+    wednesday: "Wed",
+    thursday: "Thu",
+    friday: "Fri",
+    saturday: "Sat",
+    sunday: "Sun",
+  };
+  return map[day.toLowerCase()] || "";
+}
+
+function getFormattedAvailability(rawDays) {
+  const days = rawDays.map(toShortDay).filter(Boolean);
+
   const sortedDays = dayOrder.filter((day) => days.includes(day));
+
   const result = [];
   let start = null;
 
-  for (let i = 0; i <= sortedDays.length; i++) {
+  for (let i = 0; i < sortedDays.length; i++) {
     if (start === null) start = sortedDays[i];
+
+    const currentDay = sortedDays[i];
     const nextDay = sortedDays[i + 1];
-    const currentIndex = dayOrder.indexOf(sortedDays[i]);
+    const currentIndex = dayOrder.indexOf(currentDay);
     const expectedNext = dayOrder[currentIndex + 1];
 
     if (nextDay !== expectedNext) {
-      result.push(
-        start === sortedDays[i] ? start : `${start}-${sortedDays[i]}`
-      );
+      result.push(start === currentDay ? currentDay : `${start}-${currentDay}`);
       start = null;
     }
   }
 
-  return result.join(", ");
+  const formatted = result.join(", ");
+  return formatted;
 }
 
 export const listExpertModel = async (filters = {}, page = 1, limit = 10) => {
@@ -330,6 +348,7 @@ export const listExpertModel = async (filters = {}, page = 1, limit = 10) => {
 
     const formats = formatRes.rows[0]?.formats || [];
     const days = availabilityRes.rows.map((r) => r.day);
+
     const specialties = specialtiesRes.rows[0]?.specialties || [];
 
     results.push({
