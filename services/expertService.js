@@ -2,6 +2,7 @@ import { error } from "console";
 import {
   findExpertByEmail,
   findExpertById,
+  getExpertById,
   registerExpertModel,
   updateExpertModel,
 } from "../models/expertModel.js";
@@ -25,4 +26,10 @@ export const updateExpertService = async (expertId, updateData) => {
 
   const updated = await updateExpertModel(expertId, updateData);
   return updated;
+};
+
+export const getExpertService = async (id) => {
+  const expert = await getExpertById(id);
+
+  return expert;
 };

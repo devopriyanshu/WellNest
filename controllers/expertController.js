@@ -1,4 +1,5 @@
 import {
+  getExpertService,
   registerExpertService,
   updateExpertService,
 } from "../services/expertService.js";
@@ -34,13 +35,20 @@ export const updateExpertController = async (req, res) => {
 
 export const listExpertsController = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+
+    if (isNaN(page) || page <= 0 || isNaN(limit) || limit <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid page or limit parameter",
+      });
+    }
 
     const filters = {
       search: req.query.search || null,
       category: req.query.category || null,
-      sortBy: req.query.sortBy || null, // 'experience' or 'rating'
+      sortBy: req.query.sortBy || null,
     };
 
     const experts = await listExpertModel(filters, page, limit);
@@ -57,5 +65,20 @@ export const listExpertsController = async (req, res) => {
       message: "Failed to fetch experts",
       error: error.message,
     });
+  }
+};
+export const getExpertController = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid expert ID" });
+    }
+
+    const expert = await getExpertService(id);
+    res.json(expert);
+  } catch (error) {
+    console.error("Error fetching expert:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

@@ -236,6 +236,35 @@ export const findExpertById = async (id) => {
   const result = await pool.query("SELECT * FROM experts WHERE id = $1", [id]);
   return result.rows[0];
 };
+export const getExpertById = async (id) => {
+  const expert = await pool.query(`SELECT * FROM experts WHERE id = $1`, [id]);
+
+  const qualifications = await pool.query(
+    `SELECT value FROM expert_qualifications WHERE expert_id = $1`,
+    [id]
+  );
+  const specialties = await pool.query(
+    `SELECT value FROM expert_specialties WHERE expert_id = $1`,
+    [id]
+  );
+  const services = await pool.query(
+    `SELECT * FROM expert_services WHERE expert_id = $1`,
+    [id]
+  );
+
+  const faq = await pool.query(
+    `SELECT * FROM expert_faqs WHERE expert_id = $1`,
+    [id]
+  );
+
+  return {
+    ...expert.rows[0],
+    qualifications: qualifications.rows.map((q) => q.qualification),
+    specialties: specialties.rows.map((s) => s.specialty),
+    services: services.rows,
+    faq: faq.rows,
+  };
+};
 
 const dayOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
