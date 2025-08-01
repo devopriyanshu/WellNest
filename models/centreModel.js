@@ -1,11 +1,13 @@
 import pool from "../config/db.js";
 
-export const registerCenterModel = async (centerData) => {
+export const registerCenterModel = async (centerData, imageUrls = []) => {
   const {
     name,
     category,
     description,
     address,
+    latitude,
+    longitude,
     phone,
     email,
     website,
@@ -25,10 +27,21 @@ export const registerCenterModel = async (centerData) => {
 
     // Insert into centers table
     const centerRes = await client.query(
-      `INSERT INTO centers (name, category, description, address, phone, email, website, offers)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      `INSERT INTO centers (name, category, description, address,latitude, longitude, phone, email, website, offers)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8,$9, $10)
            RETURNING id`,
-      [name, category, description, address, phone, email, website, offers]
+      [
+        name,
+        category,
+        description,
+        address,
+        latitude,
+        longitude,
+        phone,
+        email,
+        website,
+        offers,
+      ]
     );
 
     const centerId = centerRes.rows[0].id;
@@ -104,6 +117,13 @@ export const registerCenterModel = async (centerData) => {
           item.openingTime || null,
           item.closingTime || null,
         ]
+      );
+    }
+    //insert images
+    for (const url of imageUrls) {
+      await client.query(
+        `INSERT INTO center_images (center_id, image_url) VALUES ($1, $2)`,
+        [centerId, url]
       );
     }
 

@@ -7,13 +7,17 @@ import {
 
 export const registerCenterController = async (req, res) => {
   try {
-    const result = await registerCenterService(req.body);
+    const centerData = JSON.parse(req.body.centerData); // JSON string sent from frontend
+    const imageUrls = req.files.map((file) => file.path); // Cloudinary URLs
+
+    const result = await registerCenterService(centerData, imageUrls);
+
     res.status(201).json({
       message: "Center registered successfully",
       centerId: result.centerId,
     });
   } catch (error) {
-    console.error("Registration Error:", error.message);
+    console.error("Registration Error:", error);
     res.status(500).json({ error: "Failed to register center" });
   }
 };

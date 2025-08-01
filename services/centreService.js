@@ -5,12 +5,12 @@ import {
   updateCenterByIdModel,
 } from "../models/centreModel.js";
 
-export const registerCenterService = async (data) => {
+export const registerCenterService = async (data, imageUrls = []) => {
   const existing = await findCenterByEmail(data.email);
   if (existing) {
-    throw new Error("center with this email already exists");
+    throw new Error("Center with this email already exists");
   }
-  return await registerCenterModel(data);
+  return await registerCenterModel(data, imageUrls);
 };
 
 export const getCenterDetailByIdService = async (id) => {
