@@ -1,6 +1,10 @@
 import pool from "../config/db.js";
 
-export const registerCenterModel = async (centerData, imageUrls = []) => {
+export const registerCenterModel = async (
+  centerData,
+  imageUrls = [],
+  centerImageUrl
+) => {
   const {
     name,
     category,
@@ -27,8 +31,8 @@ export const registerCenterModel = async (centerData, imageUrls = []) => {
 
     // Insert into centers table
     const centerRes = await client.query(
-      `INSERT INTO centers (name, category, description, address,latitude, longitude, phone, email, website, offers)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8,$9, $10)
+      `INSERT INTO centers (name, category, description, address,latitude, longitude, phone, email, website, offers, center_image)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8,$9, $10, $11)
            RETURNING id`,
       [
         name,
@@ -41,6 +45,7 @@ export const registerCenterModel = async (centerData, imageUrls = []) => {
         email,
         website,
         offers,
+        centerImageUrl,
       ]
     );
 
@@ -106,10 +111,23 @@ export const registerCenterModel = async (centerData, imageUrls = []) => {
     }
 
     // Insert schedule
-    for (const item of schedule) {
+    let parsedSchedule = schedule;
+
+    // If schedule is coming as a JSON string, parse it
+    if (typeof schedule === "string") {
+      try {
+        parsedSchedule = JSON.parse(schedule);
+      } catch (err) {
+        console.error("Invalid schedule JSON:", schedule);
+        throw err;
+      }
+    }
+
+    for (const item of parsedSchedule) {
+      console.log("Inserting:", item);
       await client.query(
         `INSERT INTO center_schedule (center_id, day_of_week, is_open, opening_time, closing_time)
-             VALUES ($1, $2, $3, $4, $5)`,
+       VALUES ($1, $2, $3, $4, $5)`,
         [
           centerId,
           item.day,
@@ -119,6 +137,7 @@ export const registerCenterModel = async (centerData, imageUrls = []) => {
         ]
       );
     }
+
     //insert images
     for (const url of imageUrls) {
       await client.query(
