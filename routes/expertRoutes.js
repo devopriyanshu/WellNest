@@ -1,3 +1,4 @@
+import upload from "../middleware/cloudinaryUpload.js";
 import {
   getExpertController,
   listExpertsController,
@@ -8,7 +9,14 @@ import { Router } from "express";
 
 const router = Router();
 
-router.post("/register", registerExpertController);
+router.post(
+  "/register",
+  upload.fields([
+    { name: "profilePic", maxCount: 1 },
+    { name: "backgroundImage", maxCount: 1 },
+  ]),
+  registerExpertController
+);
 router.put("/:id", updateExpertController);
 router.get("/list", listExpertsController);
 

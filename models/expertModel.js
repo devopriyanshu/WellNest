@@ -1,15 +1,18 @@
 import pool from "../config/db.js";
 
-export const registerExpertModel = async (data) => {
+export const registerExpertModel = async (
+  data,
+  profilePicUrl,
+  backgroundImageUrl
+) => {
+  const contact = JSON.parse(data.contact);
+
   const {
     name,
     category,
     experience,
     bio,
     languages,
-    profilePic,
-    backgroundImage,
-    contact,
     qualifications,
     specialties,
     services,
@@ -37,8 +40,8 @@ export const registerExpertModel = async (data) => {
       experience,
       bio,
       languages,
-      profilePic,
-      backgroundImage,
+      profilePicUrl,
+      backgroundImageUrl,
       contact.phone,
       contact.email,
       contact.website,

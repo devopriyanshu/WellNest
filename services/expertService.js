@@ -7,13 +7,21 @@ import {
   updateExpertModel,
 } from "../models/expertModel.js";
 
-export const registerExpertService = async (data) => {
+export const registerExpertService = async (
+  data,
+  profilePicUrl,
+  backgroundImageUrl
+) => {
   const existing = await findExpertByEmail(data.contact.email);
   if (existing) {
     throw new Error("Expert with this email already exists");
   }
 
-  const expert = await registerExpertModel(data);
+  const expert = await registerExpertModel(
+    data,
+    profilePicUrl,
+    backgroundImageUrl
+  );
   return expert;
 };
 

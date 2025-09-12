@@ -7,7 +7,17 @@ import { listExpertModel } from "../models/expertModel.js";
 
 export const registerExpertController = async (req, res) => {
   try {
-    const expert = await registerExpertService(req.body);
+    const { body, files } = req;
+
+    const profilePicUrl = files.profilePic ? files.profilePic[0].path : null;
+    const backgroundImageUrl = files.backgroundImage
+      ? files.backgroundImage[0].path
+      : null;
+    const expert = await registerExpertService(
+      body,
+      profilePicUrl,
+      backgroundImageUrl
+    );
     res.status(201).json({
       message: "Expert registered successfully",
       expert,
