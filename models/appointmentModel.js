@@ -33,3 +33,76 @@ export const deleteAppointment = async (appointmentId, userId) => {
 
   return result.rowCount > 0;
 };
+export const findAppointmentsByUserId = async (userId) => {
+  const result = await pool.query(
+    `SELECT 
+      a.*,
+      u.name as expert_name,
+      u.email as expert_email,
+      u.phone as expert_phone
+     FROM appointments a
+     LEFT JOIN users u ON a.expert_id = u.id
+     WHERE a.user_id = $1
+     ORDER BY a.appointment_date DESC`,
+    [userId]
+  );
+
+  return result.rows;
+};
+
+// Get appointments by expert ID with user details
+export const findAppointmentsByExpertId = async (expertId) => {
+  const result = await pool.query(
+    `SELECT 
+      a.*,
+      u.name as user_name,
+      u.email as user_email,
+      u.phone as user_phone
+     FROM appointments a
+     LEFT JOIN users u ON a.user_id = u.id
+     WHERE a.expert_id = $1
+     ORDER BY a.appointment_date DESC`,
+    [expertId]
+  );
+
+  return result.rows;
+};
+
+// Get appointments by both user ID and expert ID
+export const findAppointmentsByUserAndExpert = async (userId, expertId) => {
+  const result = await pool.query(
+    `SELECT 
+      a.*,
+      u1.name as user_name,
+      u1.email as user_email,
+      u1.phone as user_phone,
+      u2.name as expert_name,
+      u2.email as expert_email,
+      u2.phone as expert_phone
+     FROM appointments a
+     LEFT JOIN users u1 ON a.user_id = u1.id
+     LEFT JOIN users u2 ON a.expert_id = u2.id
+     WHERE a.user_id = $1 AND a.expert_id = $2
+     ORDER BY a.appointment_date DESC`,
+    [userId, expertId]
+  );
+
+  return result.rows;
+};
+
+// Update appointment status (for experts to accept/reject appointments)
+export const updateAppointmentStatusById = async (
+  appointmentId,
+  status,
+  userId
+) => {
+  const result = await pool.query(
+    `UPDATE appointments
+     SET status = $1, updated_at = NOW()
+     WHERE id = $2 AND expert_id = $3
+     RETURNING *`,
+    [status, appointmentId, userId]
+  );
+
+  return result.rowCount > 0;
+};

@@ -38,7 +38,11 @@ export const listCenterController = async (req, res) => {
 
   try {
     const centers = await listCenterModel(filters, page, limit);
-    res.status(200).json({ centers, page });
+    res.status(200).json({
+      success: true,
+      data: centers,
+      message: "Experts fetched successfully",
+    });
   } catch (err) {
     console.error("Error fetching centers:", err);
     res.status(500).json({ error: "Failed to fetch centers" });

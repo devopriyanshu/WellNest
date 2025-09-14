@@ -241,7 +241,10 @@ export const findExpertById = async (id) => {
 };
 export const getExpertById = async (id) => {
   const expert = await pool.query(`SELECT * FROM experts WHERE id = $1`, [id]);
-
+  const schedules = await pool.query(
+    `SELECT day, selected , start_time, end_time FROM expert_availability WHERE expert_id = $1`,
+    [id]
+  );
   const qualifications = await pool.query(
     `SELECT value FROM expert_qualifications WHERE expert_id = $1`,
     [id]
@@ -262,6 +265,7 @@ export const getExpertById = async (id) => {
 
   return {
     ...expert.rows[0],
+    schedules: schedules.rows.map((s) => s.schedule),
     qualifications: qualifications.rows.map((q) => q.qualification),
     specialties: specialties.rows.map((s) => s.specialty),
     services: services.rows,

@@ -185,7 +185,7 @@ export const listCenterModel = async (filters = {}, page = 1, limit = 10) => {
   const todayName = weekdays[today.getDay()];
 
   let query = `
-    SELECT c.id, c.name, c.category, c.description, c.address
+    SELECT c.id, c.name, c.category, c.description, c.address, c.center_image
     FROM centers c
   `;
 
@@ -193,6 +193,8 @@ export const listCenterModel = async (filters = {}, page = 1, limit = 10) => {
   const conditions = [];
 
   // Filter: category
+  console.log(filters.category);
+
   if (filters.category) {
     values.push(filters.category);
     conditions.push(`c.category ILIKE $${values.length}`);
@@ -228,6 +230,7 @@ export const listCenterModel = async (filters = {}, page = 1, limit = 10) => {
   }`;
 
   const centers = await pool.query(query, values);
+
   const results = [];
 
   for (const center of centers.rows) {
@@ -263,7 +266,7 @@ export const listCenterModel = async (filters = {}, page = 1, limit = 10) => {
       reviewCount: 0,
       location: center.address || "",
       distance: null,
-      image: `/api/placeholder/600/400`,
+      image: center.center_image,
       description: center.description,
       amenities: amenitiesRes.rows.map((r) => r.value),
       prices: price,
@@ -281,37 +284,49 @@ export const getCenterDetailByIdModel = async (centerId) => {
   ]);
   if (centerRes.rows.length === 0) return null;
 
-  const [amenities, equipment, services, trainers, pricing, schedule, address] =
-    await Promise.all([
-      pool.query(`SELECT value FROM center_amenities WHERE center_id = $1`, [
-        centerId,
-      ]),
-      pool.query(`SELECT value FROM center_equipment WHERE center_id = $1`, [
-        centerId,
-      ]),
-      pool.query(
-        `SELECT name, icon, description FROM center_services WHERE center_id = $1`,
-        [centerId]
-      ),
-      pool.query(
-        `SELECT name, specialty, bio, image FROM center_trainers WHERE center_id = $1`,
-        [centerId]
-      ),
-      pool.query(
-        `SELECT type, price FROM center_pricing WHERE center_id = $1`,
-        [centerId]
-      ),
-      pool.query(
-        `SELECT day_of_week, is_open, opening_time, closing_time FROM center_schedule WHERE center_id = $1`,
-        [centerId]
-      ),
-      pool.query(`SELECT * FROM center_addresses WHERE center_id = $1`, [
-        centerId,
-      ]),
-    ]);
+  const [
+    images,
+    amenities,
+    equipment,
+    services,
+    trainers,
+    pricing,
+    schedule,
+    address,
+  ] = await Promise.all([
+    pool.query(`SELECT image_url FROM center_images WHERE center_id =$1`, [
+      centerId,
+    ]),
+    pool.query(`SELECT value FROM center_amenities WHERE center_id = $1`, [
+      centerId,
+    ]),
+
+    pool.query(`SELECT value FROM center_equipment WHERE center_id = $1`, [
+      centerId,
+    ]),
+    pool.query(
+      `SELECT name, icon, description FROM center_services WHERE center_id = $1`,
+      [centerId]
+    ),
+    pool.query(
+      `SELECT name, specialty, bio, image FROM center_trainers WHERE center_id = $1`,
+      [centerId]
+    ),
+    pool.query(`SELECT type, price FROM center_pricing WHERE center_id = $1`, [
+      centerId,
+    ]),
+    pool.query(
+      `SELECT day_of_week, is_open, opening_time, closing_time FROM center_schedule WHERE center_id = $1`,
+      [centerId]
+    ),
+    pool.query(`SELECT * FROM center_addresses WHERE center_id = $1`, [
+      centerId,
+    ]),
+  ]);
 
   return {
     ...centerRes.rows[0],
+    images: images.rows,
     amenities: amenities.rows,
     equipment: equipment.rows,
     services: services.rows,
