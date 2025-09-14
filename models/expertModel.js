@@ -265,9 +265,9 @@ export const getExpertById = async (id) => {
 
   return {
     ...expert.rows[0],
-    schedules: schedules.rows.map((s) => s.schedule),
-    qualifications: qualifications.rows.map((q) => q.qualification),
-    specialties: specialties.rows.map((s) => s.specialty),
+    schedules: schedules.rows,
+    qualifications: qualifications.rows,
+    specialties: specialties.rows,
     services: services.rows,
     faq: faq.rows,
   };

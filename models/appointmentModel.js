@@ -7,7 +7,7 @@ export const createAppointment = async (data) => {
     expert_id,
     appointment_date,
     type,
-    status = "pending",
+    status = "upcoming",
     notes,
   } = data;
 
@@ -41,7 +41,7 @@ export const findAppointmentsByUserId = async (userId) => {
       u.email as expert_email,
       u.phone as expert_phone
      FROM appointments a
-     LEFT JOIN users u ON a.expert_id = u.id
+     LEFT JOIN experts u ON a.expert_id = u.id
      WHERE a.user_id = $1
      ORDER BY a.appointment_date DESC`,
     [userId]

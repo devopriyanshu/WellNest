@@ -10,9 +10,9 @@ import {
 // Create appointment controller
 export const createAppointmentController = async (req, res) => {
   try {
-    const userId = req.user.id; // From auth middleware
+    const userId = req.user.refId; // From auth middleware
 
-    const { expert_id, appointment_date, type, notes } = req.body;
+    const { expert_id, appointment_date, type, status, notes } = req.body;
 
     const appointment = await createNewAppointment({
       user_id: userId,
@@ -130,7 +130,7 @@ export const updateAppointmentStatusController = async (req, res) => {
     const { status } = req.body;
     const userId = req.user.id;
 
-    if (!["pending", "confirmed", "cancelled", "completed"].includes(status)) {
+    if (!["upcoming", "cancelled", "completed"].includes(status)) {
       return res.status(400).json({
         success: false,
         message: "Invalid status value",

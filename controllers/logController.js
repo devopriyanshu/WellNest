@@ -1,3 +1,4 @@
+import { findAppointmentsByUserId } from "../models/appointmentModel.js";
 import {
   addActivityLogService,
   addMealLogService,
@@ -52,7 +53,7 @@ export const getUserDashboardLogs = async (req, res) => {
   try {
     const [sleepLogs, appointments, activityLogs, meals] = await Promise.all([
       fetchSleepLogs(userId),
-      fetchAppointments(userId),
+      findAppointmentsByUserId(userId),
       fetchActivityLogs(userId),
       fetchMeals(userId),
     ]);

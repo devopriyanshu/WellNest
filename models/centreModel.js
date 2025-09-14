@@ -284,45 +284,35 @@ export const getCenterDetailByIdModel = async (centerId) => {
   ]);
   if (centerRes.rows.length === 0) return null;
 
-  const [
-    images,
-    amenities,
-    equipment,
-    services,
-    trainers,
-    pricing,
-    schedule,
-    address,
-  ] = await Promise.all([
-    pool.query(`SELECT image_url FROM center_images WHERE center_id =$1`, [
-      centerId,
-    ]),
-    pool.query(`SELECT value FROM center_amenities WHERE center_id = $1`, [
-      centerId,
-    ]),
+  const [images, amenities, equipment, services, trainers, pricing, schedule] =
+    await Promise.all([
+      pool.query(`SELECT image_url FROM center_images WHERE center_id =$1`, [
+        centerId,
+      ]),
+      pool.query(`SELECT value FROM center_amenities WHERE center_id = $1`, [
+        centerId,
+      ]),
 
-    pool.query(`SELECT value FROM center_equipment WHERE center_id = $1`, [
-      centerId,
-    ]),
-    pool.query(
-      `SELECT name, icon, description FROM center_services WHERE center_id = $1`,
-      [centerId]
-    ),
-    pool.query(
-      `SELECT name, specialty, bio, image FROM center_trainers WHERE center_id = $1`,
-      [centerId]
-    ),
-    pool.query(`SELECT type, price FROM center_pricing WHERE center_id = $1`, [
-      centerId,
-    ]),
-    pool.query(
-      `SELECT day_of_week, is_open, opening_time, closing_time FROM center_schedule WHERE center_id = $1`,
-      [centerId]
-    ),
-    pool.query(`SELECT * FROM center_addresses WHERE center_id = $1`, [
-      centerId,
-    ]),
-  ]);
+      pool.query(`SELECT value FROM center_equipment WHERE center_id = $1`, [
+        centerId,
+      ]),
+      pool.query(
+        `SELECT name, icon, description FROM center_services WHERE center_id = $1`,
+        [centerId]
+      ),
+      pool.query(
+        `SELECT name, specialty, bio, image FROM center_trainers WHERE center_id = $1`,
+        [centerId]
+      ),
+      pool.query(
+        `SELECT type, price FROM center_pricing WHERE center_id = $1`,
+        [centerId]
+      ),
+      pool.query(
+        `SELECT day_of_week, is_open, opening_time, closing_time FROM center_schedule WHERE center_id = $1`,
+        [centerId]
+      ),
+    ]);
 
   return {
     ...centerRes.rows[0],
@@ -333,7 +323,6 @@ export const getCenterDetailByIdModel = async (centerId) => {
     trainers: trainers.rows,
     pricing: pricing.rows,
     schedule: schedule.rows,
-    address: address.rows[0] || null,
   };
 };
 
