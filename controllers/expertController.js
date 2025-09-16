@@ -7,17 +7,24 @@ import { listExpertModel } from "../models/expertModel.js";
 
 export const registerExpertController = async (req, res) => {
   try {
+    console.log("expertdata", req.body);
+
     const { body, files } = req;
+
+    // Parse the JSON string from the data field
+    const parsedData = JSON.parse(body.data);
 
     const profilePicUrl = files.profilePic ? files.profilePic[0].path : null;
     const backgroundImageUrl = files.backgroundImage
       ? files.backgroundImage[0].path
       : null;
+
     const expert = await registerExpertService(
-      body,
+      parsedData, // Pass the parsed data instead of raw body
       profilePicUrl,
       backgroundImageUrl
     );
+
     res.status(201).json({
       message: "Expert registered successfully",
       expert,

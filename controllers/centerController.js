@@ -9,11 +9,52 @@ export const registerCenterController = async (req, res) => {
   try {
     const { body, files } = req;
 
+    let parsedData;
+
+    // Check if data is sent as centerData (single JSON string) or individual fields
+    if (body.centerData) {
+      // Handle centerData format
+      try {
+        parsedData = JSON.parse(body.centerData);
+      } catch (err) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid JSON format in centerData",
+        });
+      }
+    } else {
+      // Handle individual fields format
+      const safeJsonParse = (value, fieldName) => {
+        if (typeof value === "string") {
+          try {
+            return JSON.parse(value);
+          } catch (err) {
+            throw new Error(
+              `Invalid JSON format for ${fieldName}: ${err.message}`
+            );
+          }
+        }
+        return value;
+      };
+
+      parsedData = {
+        ...body,
+        amenities: safeJsonParse(body.amenities, "amenities"),
+        equipment: safeJsonParse(body.equipment, "equipment"),
+        services: safeJsonParse(body.services, "services"),
+        trainers: safeJsonParse(body.trainers, "trainers"),
+        pricingData: safeJsonParse(body.pricingData, "pricingData"),
+        schedule: safeJsonParse(body.schedule, "schedule"),
+      };
+    }
+
+    console.log("Parsed data:", parsedData);
+
     const centerImageUrl = files.centerImage ? files.centerImage[0].path : null;
     const galleryUrls = files.images ? files.images.map((img) => img.path) : [];
 
     const newCenter = await registerCenterService(
-      body,
+      parsedData,
       galleryUrls,
       centerImageUrl
     );
@@ -23,6 +64,7 @@ export const registerCenterController = async (req, res) => {
       data: newCenter,
     });
   } catch (err) {
+    console.error("Registration error:", err);
     res.status(400).json({ success: false, message: err.message });
   }
 };

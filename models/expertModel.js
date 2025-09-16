@@ -5,7 +5,7 @@ export const registerExpertModel = async (
   profilePicUrl,
   backgroundImageUrl
 ) => {
-  const contact = JSON.parse(data.contact);
+  const contact = data.contact;
 
   const {
     name,
@@ -391,8 +391,8 @@ export const listExpertModel = async (filters = {}, page = 1, limit = 10) => {
       id: expert.id,
       name: expert.name,
       category: expert.category,
-      rating: 0,
-      reviewCount: 0,
+      rating: 5,
+      reviewCount: 100,
       location: formats.join(" & ") || "Unknown",
       experience: expert.experience,
       image: expert.profile_image || "/api/placeholder/600/400",
