@@ -106,3 +106,18 @@ export const updateAppointmentStatusById = async (
 
   return result.rowCount > 0;
 };
+
+cron.schedule("*/5 * * * *", async () => {
+  try {
+    const res = await pool.query(
+      `UPDATE appointments
+       SET status = 'completed', updated_at = NOW()
+       WHERE status = 'confirmed'
+         AND appointment_time < NOW()
+       RETURNING id`
+    );
+    console.log(`✅ Auto-completed ${res.rowCount} appointments`);
+  } catch (err) {
+    console.error("Error auto-updating appointments:", err);
+  }
+});
