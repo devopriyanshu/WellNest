@@ -1,3 +1,4 @@
+import { CronJob } from "cron";
 import pool from "../config/db.js";
 
 // Create a new appointment
@@ -107,7 +108,7 @@ export const updateAppointmentStatusById = async (
   return result.rowCount > 0;
 };
 
-cron.schedule("*/5 * * * *", async () => {
+const job = new CronJob("*/5 * * * *", async () => {
   try {
     const res = await pool.query(
       `UPDATE appointments
@@ -121,3 +122,5 @@ cron.schedule("*/5 * * * *", async () => {
     console.error("Error auto-updating appointments:", err);
   }
 });
+
+job.start();
