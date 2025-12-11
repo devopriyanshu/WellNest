@@ -41,7 +41,7 @@ jobs:
             docker run -d \
               --name wellnest-backend \
               --env-file ~/wellnest/.env.production \
-              -p 8081:4000 \
+              -p 80:4000 \
               ${{ secrets.IMAGE_NAME }}:${{ github.sha }}
 
             echo "Deployment complete!"
