@@ -1,5 +1,10 @@
+import dotenv from "dotenv";
+
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config();
+}
 import express from "express";
-import pool from "./config/db.js";
+import pool from "./config/neondb.js";
 import passport from "./config/passportConfig.js";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
