@@ -18,11 +18,11 @@ router.get(
   passport.authenticate("google", { session: false }),
   (req, res) => {
     if (!req.user || !req.user.token) {
-      return res.redirect("http://localhost:5173?error=auth_failed");
+      return res.redirect("https://www.mywellnest.app/login?error=auth_failed");
     }
 
-    // ✅ Send JWT to frontend
-    res.redirect(`http://localhost:5173/login?token=${req.user.token}`);
+    // Send JWT to frontend
+    res.redirect(`https://www.mywellnest.app/login?token=${req.user.token}`);
   }
 );
 
