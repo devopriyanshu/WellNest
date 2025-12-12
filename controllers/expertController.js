@@ -2,100 +2,81 @@ import {
   getExpertService,
   registerExpertService,
   updateExpertService,
-} from "../services/expertService.js";
-import { listExpertModel } from "../models/expertModel.js";
+  listExpertsService,
+} from '../services/expertService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
-export const registerExpertController = async (req, res) => {
-  try {
-    console.log("expertdata", req.body);
+export const registerExpertController = asyncHandler(async (req, res) => {
+  const { body, files } = req;
 
-    const { body, files } = req;
-
-    // Parse the JSON string from the data field
-    const parsedData = JSON.parse(body.data);
-
-    const profilePicUrl = files.profilePic ? files.profilePic[0].path : null;
-    const backgroundImageUrl = files.backgroundImage
-      ? files.backgroundImage[0].path
-      : null;
-
-    const expert = await registerExpertService(
-      parsedData, // Pass the parsed data instead of raw body
-      profilePicUrl,
-      backgroundImageUrl
-    );
-
-    res.status(201).json({
-      message: "Expert registered successfully",
-      expert,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(400).json({ message: err.message });
+  // Handle both JSON string (from data field) and direct form data
+  let parsedData;
+  if (body.data) {
+    // If data field exists, parse it as JSON
+    parsedData = JSON.parse(body.data);
+  } else {
+    // Otherwise, use body directly (form fields)
+    parsedData = body;
   }
-};
 
-export const updateExpertController = async (req, res) => {
-  try {
-    const expertId = parseInt(req.params.id);
-    const updateData = req.body;
+  const profilePicUrl = files?.profilePic ? files.profilePic[0].path : null;
+  const backgroundImageUrl = files?.backgroundImage
+    ? files.backgroundImage[0].path
+    : null;
 
-    const updatedExpert = await updateExpertService(expertId, updateData);
-    res.status(200).json({
-      message: "Expert updated successfully",
-      data: updatedExpert,
-    });
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-};
+  const expert = await registerExpertService(
+    parsedData,
+    profilePicUrl,
+    backgroundImageUrl
+  );
 
-export const listExpertsController = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page);
-    const limit = parseInt(req.query.limit);
+  res.status(201).json({
+    success: true,
+    message: 'Expert registered successfully. Pending admin approval.',
+    data: expert,
+  });
+});
 
-    if (isNaN(page) || page <= 0 || isNaN(limit) || limit <= 0) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid page or limit parameter",
-      });
-    }
+export const updateExpertController = asyncHandler(async (req, res) => {
+  const expertId = parseInt(req.params.id);
+  const updateData = req.body;
 
-    const filters = {
-      search: req.query.search || null,
-      category: req.query.category || null,
-      sortBy: req.query.sortBy || null,
-    };
+  const updatedExpert = await updateExpertService(expertId, updateData);
+  
+  res.status(200).json({
+    success: true,
+    message: 'Expert updated successfully',
+    data: updatedExpert,
+  });
+});
 
-    const experts = await listExpertModel(filters, page, limit);
+export const listExpertsController = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
 
-    res.status(200).json({
-      success: true,
-      data: experts,
-      message: "Experts fetched successfully",
-    });
-  } catch (error) {
-    console.error("Error fetching experts:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch experts",
-      error: error.message,
-    });
-  }
-};
-export const getExpertController = async (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
+  const filters = {
+    search: req.query.search || null,
+    category: req.query.category || null,
+    sortBy: req.query.sortBy || null,
+  };
 
-    if (isNaN(id)) {
-      return res.status(400).json({ error: "Invalid expert ID" });
-    }
+  const result = await listExpertsService(filters, page, limit);
 
-    const expert = await getExpertService(id);
-    res.json(expert);
-  } catch (error) {
-    console.error("Error fetching expert:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
+  res.status(200).json({
+    success: true,
+    data: result.experts,
+    meta: result.meta,
+    message: 'Experts fetched successfully',
+  });
+});
+
+export const getExpertController = asyncHandler(async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const expert = await getExpertService(id);
+  
+  res.json({
+    success: true,
+    data: expert,
+  });
+});

@@ -1,68 +1,138 @@
-import pool from "../config/neondb.js";
+import prisma from '../config/prisma.js';
 
-export const findUserByEmail = async (email) => {
-  const result = await pool.query(
-    "SELECT id, email, role, password FROM central_users WHERE email = $1",
-    [email]
-  );
-  return result.rows[0];
-};
+/**
+ * CentralUser Model - Core authentication and user management
+ */
+class CentralUserModel {
+  /**
+   * Find user by email
+   */
+  static async findByEmail(email) {
+    return await prisma.centralUser.findUnique({
+      where: { email },
+      include: {
+        users: true,
+        experts: true,
+        centers: true,
+        admins: true,
+      },
+    });
+  }
 
-export const findCentralUserById = async (id) => {
-  const result = await pool.query(
-    "SELECT id, email, role FROM central_users WHERE id = $1",
-    [id]
-  );
-  return result.rows[0];
-};
+  /**
+   * Find user by ID
+   */
+  static async findById(id) {
+    return await prisma.centralUser.findUnique({
+      where: { id },
+      include: {
+        users: true,
+        experts: true,
+        centers: true,
+        admins: true,
+      },
+    });
+  }
 
-export const createUser = async (name, email, password, role, provider) => {
-  const result = await pool.query(
-    "INSERT INTO central_users (name, email, password, role, provider) VALUES ($1, $2, $3, $4, $5) RETURNING id, email, role",
-    [name, email, password || null, role, provider]
-  );
-  return result.rows[0];
-};
+  /**
+   * Find user by Google ID
+   */
+  static async findByGoogleId(googleId) {
+    return await prisma.centralUser.findUnique({
+      where: { googleId },
+    });
+  }
 
-// export const updateUserModel = async (id, data) => {
-//   const {
-//     full_name,
-//     email,
-//     phone_number,
-//     gender,
-//     dob,
-//     profile_picture,
-//     address,
-//     language_preference,
-//   } = data;
+  /**
+   * Create new central user
+   */
+  static async create(data) {
+    return await prisma.centralUser.create({
+      data,
+    });
+  }
 
-//   const query = `
-//   UPDATE users SET
-//     full_name = $1,
-//     email = $2,
-//     phone_number = $3,
-//     gender = $4,
-//     dob = $5,
-//     profile_picture = $6,
-//     address = $7,
-//     language_preference = $8,
-//     updated_at = CURRENT_TIMESTAMP
-//     WHERE id = $9
-//     RETURNING id, full_name, email, phone_number, gender, dob, profile_picture, address, language_preference, updated_at
-//   `;
+  /**
+   * Update user
+   */
+  static async update(id, data) {
+    return await prisma.centralUser.update({
+      where: { id },
+      data,
+    });
+  }
 
-//   const values = [
-//     full_name,
-//     email,
-//     phone_number,
-//     gender,
-//     dob,
-//     profile_picture,
-//     address,
-//     language_preference,
-//     id,
-//   ];
+  /**
+   * Update last login
+   */
+  static async updateLastLogin(id) {
+    return await prisma.centralUser.update({
+      where: { id },
+      data: { lastLogin: new Date() },
+    });
+  }
 
-//   const result = await pool.query(query, values);
-//   return result.rows[0];
-// };
+  /**
+   * Activate user
+   */
+  static async activate(id) {
+    return await prisma.centralUser.update({
+      where: { id },
+      data: { 
+        isActive: true,
+        status: 'active',
+      },
+    });
+  }
+
+  /**
+   * Deactivate user
+   */
+  static async deactivate(id) {
+    return await prisma.centralUser.update({
+      where: { id },
+      data: { 
+        isActive: false,
+        status: 'inactive',
+      },
+    });
+  }
+
+  /**
+   * List users with filters
+   */
+  static async findMany(where = {}, options = {}) {
+    const { skip, take, orderBy } = options;
+    
+    return await prisma.centralUser.findMany({
+      where,
+      skip,
+      take,
+      orderBy: orderBy || { createdAt: 'desc' },
+      include: {
+        users: true,
+        experts: true,
+        centers: true,
+        admins: true,
+      },
+    });
+  }
+
+  /**
+   * Count users
+   */
+  static async count(where = {}) {
+    return await prisma.centralUser.count({ where });
+  }
+
+  /**
+   * Delete user
+   */
+  static async delete(id) {
+    return await prisma.centralUser.delete({
+      where: { id },
+    });
+  }
+}
+
+export default CentralUserModel;

@@ -1,60 +1,200 @@
-import { createUser, findUserByEmail } from "../models/centralUserModel.js";
-import { generateToken } from "../utils/jwtUtility.js";
-import { comparepassword, hashpassword } from "../utils/passwordUtil.js";
+import prisma from '../config/prisma.js';
+import { generateToken } from '../utils/jwtUtility.js';
+import { comparepassword, hashpassword } from '../utils/passwordUtil.js';
+import { ValidationError, UnauthorizedError } from '../utils/errors.js';
+import logger from '../utils/logger.js';
 
-export const signup = async (email, password, role = "user") => {
-  const existingUser = await findUserByEmail(email);
+export const signup = async (email, password, role = 'user') => {
+  // Check if user exists
+  const existingUser = await prisma.centralUser.findUnique({
+    where: { email },
+  });
+
   if (existingUser) {
-    throw new Error("User already exists");
+    throw new ValidationError('User already exists');
   }
 
-  const name = email.split("@")[0];
+  const name = email.split('@')[0];
   const hashedPassword = await hashpassword(password);
-  console.log("[🔐 Hashed Password]", hashedPassword);
+  logger.info(`Creating new user: ${email} with role: ${role}`);
 
-  const newUser = await createUser(name, email, hashedPassword, role, "local");
-  console.log("[👤 New User Created]", newUser);
+  // Create central user and profile in transaction
+  const result = await prisma.$transaction(async (tx) => {
+    // Create central user
+    const centralUser = await tx.centralUser.create({
+      data: {
+        email,
+        password: hashedPassword,
+        role: role.toLowerCase(),
+        name,
+        provider: 'local',
+        isVerified: false,
+        isActive: true,
+        status: 'active',
+      },
+    });
 
-  const token = generateToken(newUser.id, role); // pass role to token if needed
-  return { user: newUser, token };
+    // Create profile based on role
+    let profile = null;
+    if (role.toLowerCase() === 'user') {
+      profile = await tx.user.create({
+        data: {
+          user_id: centralUser.id,
+          fullName: name,
+          email: email,
+        },
+      });
+    }
+
+    return { centralUser, profile };
+  });
+
+  const token = generateToken(result.centralUser.id, role);
+  
+  logger.info(`User created successfully: ${email}`);
+
+  return {
+    user: {
+      id: result.centralUser.id,
+      email: result.centralUser.email,
+      role: result.centralUser.role,
+      name: result.centralUser.name,
+    },
+    token,
+  };
 };
 
 export const login = async (email, password) => {
-  const user = await findUserByEmail(email);
-  if (!user) {
-    throw new Error("Invalid email or password");
+  // Find user with profile data
+  const centralUser = await prisma.centralUser.findUnique({
+    where: { email },
+    include: {
+      users: true,
+      experts: true,
+      centers: true,
+      admins: true,
+    },
+  });
+
+  if (!centralUser) {
+    throw new UnauthorizedError('Invalid email or password');
   }
-  const isValid = await comparepassword(password, user.password);
+
+  if (!centralUser.isActive) {
+    throw new UnauthorizedError('Account is deactivated');
+  }
+
+  const isValid = await comparepassword(password, centralUser.password);
   if (!isValid) {
-    throw new Error("Invalid email or password");
+    throw new UnauthorizedError('Invalid email or password');
   }
-  const token = generateToken(user.id, user.role);
-  return { user, token };
+
+  // Update last login
+  await prisma.centralUser.update({
+    where: { id: centralUser.id },
+    data: { lastLogin: new Date() },
+  });
+
+  const token = generateToken(centralUser.id, centralUser.role);
+
+  logger.info(`User logged in: ${email}`);
+
+  // Return user data based on role
+  let profileData = null;
+  if (centralUser.users.length > 0) {
+    profileData = centralUser.users[0];
+  } else if (centralUser.experts.length > 0) {
+    profileData = centralUser.experts[0];
+  } else if (centralUser.centers.length > 0) {
+    profileData = centralUser.centers[0];
+  } else if (centralUser.admins.length > 0) {
+    profileData = centralUser.admins[0];
+  }
+
+  return {
+    user: {
+      id: centralUser.id,
+      email: centralUser.email,
+      role: centralUser.role,
+      name: centralUser.name,
+      isVerified: centralUser.isVerified,
+      profile: profileData,
+    },
+    token,
+  };
 };
 
-// export const googleSignInService = async (idToken) => {
-//   try {
-//     const ticket = await client.verifyIdToken({
-//       idToken,
-//       audience: process.env.GOOGLE_CLIENT_ID,
-//     });
+export const googleSignIn = async (googleId, email, name) => {
+  // Find or create user
+  let centralUser = await prisma.centralUser.findFirst({
+    where: {
+      OR: [
+        { email },
+        { googleId },
+      ],
+    },
+    include: {
+      users: true,
+    },
+  });
 
-//     const payload = ticket.getPayload();
-//     console.log("payload", payload);
+  if (!centralUser) {
+    // Create new user with Google auth
+    const result = await prisma.$transaction(async (tx) => {
+      const newCentralUser = await tx.centralUser.create({
+        data: {
+          email,
+          googleId,
+          name,
+          role: 'user',
+          provider: 'google',
+          isVerified: true,
+          isActive: true,
+          status: 'active',
+        },
+      });
 
-//     const { email, name } = payload;
+      const userProfile = await tx.user.create({
+        data: {
+          user_id: newCentralUser.id,
+          fullName: name,
+          email: email,
+        },
+      });
 
-//     let user = await findUserByEmail(email);
+      return { centralUser: newCentralUser, profile: userProfile };
+    });
 
-//     if (!user) {
-//       user = await createUser(name, email, null);
-//     }
+    centralUser = result.centralUser;
+    logger.info(`New Google user created: ${email}`);
+  } else {
+    // Update Google ID if not set
+    if (!centralUser.googleId) {
+      centralUser = await prisma.centralUser.update({
+        where: { id: centralUser.id },
+        data: { googleId },
+      });
+    }
 
-//     const token = generateToken(user.id, user.role || "user");
+    // Update last login
+    await prisma.centralUser.update({
+      where: { id: centralUser.id },
+      data: { lastLogin: new Date() },
+    });
 
-//     return { user, token };
-//   } catch (error) {
-//     console.error("Google Token Verification Failed:", error);
-//     throw new Error("Invalid or expired Google token");
-//   }
-// };
+    logger.info(`Existing Google user logged in: ${email}`);
+  }
+
+  const token = generateToken(centralUser.id, centralUser.role);
+
+  return {
+    user: {
+      id: centralUser.id,
+      email: centralUser.email,
+      role: centralUser.role,
+      name: centralUser.name,
+      isVerified: centralUser.isVerified,
+    },
+    token,
+  };
+};

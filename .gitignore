@@ -3,10 +3,19 @@
 
 # Environment variable files
 .env
+.env.local
+.env.development
 .env.production
+.env.staging
+.env.*.local
+
+# Keep the example file (not ignored)
+!.env.example
 
 # Logs
+logs/
 *.log
+*.log*
 npm-debug.log*
 
 # Operating system files
@@ -25,3 +34,23 @@ Thumbs.db   # Windows specific
 *.bak
 *.swp
 config/serviceAccountKey.json
+
+/generated/prisma
+
+# Documentation and Plans
+*.md
+!README.md
+!run-migration*
+
+# Testing Files
+*test*.js
+*.test.js
+*.spec.js
+tests/
+__tests__/
+debug-*.js
+
+# Temporary SQL Files
+*.session.sql
+run_migration.sh
+run_migration.js
