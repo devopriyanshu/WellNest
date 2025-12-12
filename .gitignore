@@ -3,6 +3,7 @@
 
 # Environment variable files
 .env
+.env.production
 
 # Logs
 *.log

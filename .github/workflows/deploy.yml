@@ -40,7 +40,7 @@ jobs:
             echo "Running new container..."
             docker run -d \
               --name wellnest-backend \
-              --env-file ~/wellnest/.env.production \
+              --env-file /home/priyanshupatel1902/wellnest/.env.production \
               -p 80:4000 \
               ${{ secrets.IMAGE_NAME }}:${{ github.sha }}
 
