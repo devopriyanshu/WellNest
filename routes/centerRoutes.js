@@ -1,25 +1,33 @@
-import { Router } from "express";
+import { Router } from 'express';
 import {
-  getCenterByIdController,
-  listCenterController,
   registerCenterController,
-  updateCenterByIdController,
-} from "../controllers/centerController.js";
-import upload from "../middleware/cloudinaryUpload.js";
+  getCenterController,
+  updateCenterController,
+  listCentersController,
+} from '../controllers/centerController.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
+import upload from '../middleware/cloudinaryUpload.js';
 
 const router = Router();
 
+// Register new center
 router.post(
-  "/register",
+  '/register',
+  authMiddleware,
   upload.fields([
-    { name: "centerImage", maxCount: 1 }, // single main image
-    { name: "images", maxCount: 10 }, // multiple gallery images
+    { name: 'profilePic', maxCount: 1 },
+    { name: 'backgroundImage', maxCount: 1 },
   ]),
   registerCenterController
 );
 
-router.get("/list", listCenterController);
-router.get("/:id", getCenterByIdController); // ⬅ Get by ID
-router.put("/:id", updateCenterByIdController); // ⬅ Update center
+// List centers
+router.get('/', listCentersController);
+
+// Get center by ID
+router.get('/:id', getCenterController);
+
+// Update center
+router.put('/:id', authMiddleware, updateCenterController);
 
 export default router;

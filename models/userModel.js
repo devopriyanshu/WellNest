@@ -1,75 +1,138 @@
-import pool from "../config/neondb.js";
+import prisma from '../config/prisma.js';
 
-export const findUsersByEmail = async (email) => {
-  const result = await pool.query("SELECT * FROM users WHERE email = $1", [
-    email,
-  ]);
-  return result.rows[0];
-};
-export const findUsersById = async (id) => {
-  const result = await pool.query("SELECT * FROM users WHERE user_id = $1", [
-    id,
-  ]);
-  return result.rows[0];
-};
-export const createUserEntry = async (email) => {
-  const result = await pool.query(
-    "INSERT INTO users ( email) VALUES ($1) RETURNING id, email",
-    [email]
-  );
-  return result.rows[0];
-};
+/**
+ * User Model - User profiles and health data
+ */
+class UserModel {
+  /**
+   * Find user by central user ID
+   */
+  static async findByCentralUserId(centralUserId) {
+    return await prisma.user.findFirst({
+      where: { user_id: centralUserId },
+      include: {
+        centralUser: {
+          select: {
+            email: true,
+            role: true,
+            isVerified: true,
+            isActive: true,
+          },
+        },
+      },
+    });
+  }
 
-export const updateUsersModel = async (id, data) => {
-  const {
-    full_name,
-    email,
-    phone_number,
-    gender,
-    dob,
-    profile_picture,
-    address, // full address string
-    language_preference,
-    height,
-    weight,
-  } = data;
+  /**
+   * Find user by ID
+   */
+  static async findById(id) {
+    return await prisma.user.findUnique({
+      where: { id },
+      include: {
+        centralUser: true,
+      },
+    });
+  }
 
-  console.log("[updateUsersModel] Received data:", data);
+  /**
+   * Find user by email
+   */
+  static async findByEmail(email) {
+    return await prisma.user.findFirst({
+      where: { email },
+      include: {
+        centralUser: true,
+      },
+    });
+  }
 
-  const query = `
-    UPDATE users SET
-      full_name = $1,
-      email = $2,
-      phone_number = $3,
-      gender = $4,
-      dob = $5,
-      profile_picture = $6,
-      address = $7,
-      language_preference = $8,
-      height = $9,
-      weight = $10,
-      
-      
-      updated_at = CURRENT_TIMESTAMP
-    WHERE id = $11
-    RETURNING id, full_name, email, phone_number, gender, dob, profile_picture, address, language_preference, height, weight, updated_at
-  `;
+  /**
+   * Create user profile
+   */
+  static async create(data) {
+    return await prisma.user.create({
+      data,
+      include: {
+        centralUser: true,
+      },
+    });
+  }
 
-  const values = [
-    full_name,
-    email,
-    phone_number,
-    gender,
-    dob,
-    profile_picture,
-    address,
-    language_preference,
-    height ? parseFloat(height) : null,
-    weight ? parseFloat(weight) : null,
+  /**
+   * Update user profile
+   */
+  static async update(id, data) {
+    return await prisma.user.update({
+      where: { id },
+      data,
+      include: {
+        centralUser: true,
+      },
+    });
+  }
 
-    id,
-  ];
+  /**
+   * List users with filters
+   */
+  static async findMany(where = {}, options = {}) {
+    const { skip, take, orderBy } = options;
+    
+    return await prisma.user.findMany({
+      where,
+      skip,
+      take,
+      orderBy: orderBy || { createdAt: 'desc' },
+      include: {
+        centralUser: {
+          select: {
+            email: true,
+            role: true,
+            isActive: true,
+          },
+        },
+      },
+    });
+  }
 
-  const result = await pool.query(query, values);
-  return result.rows[0];
-};
+  /**
+   * Count users
+   */
+  static async count(where = {}) {
+    return await prisma.user.count({ where });
+  }
+
+  /**
+   * Get user with health logs
+   */
+  static async findWithHealthData(id) {
+    return await prisma.user.findUnique({
+      where: { id },
+      include: {
+        sleepLogs: {
+          take: 30,
+          orderBy: { date: 'desc' },
+        },
+        activityLogs: {
+          take: 30,
+          orderBy: { date: 'desc' },
+        },
+        mealLogs: {
+          take: 30,
+          orderBy: { date: 'desc' },
+        },
+      },
+    });
+  }
+
+  /**
+   * Delete user
+   */
+  static async delete(id) {
+    return await prisma.user.delete({
+      where: { id },
+    });
+  }
+}
+
+export default UserModel;

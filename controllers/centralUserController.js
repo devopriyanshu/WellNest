@@ -1,27 +1,51 @@
-// controllers/userController.js
-import { findUsersById } from "../models/userModel.js";
-import { findCentralUserById } from "../models/centralUserModel.js";
+import CentralUserModel from '../models/centralUserModel.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
-export const getUserMe = async (req, res) => {
-  try {
-    const userId = req.user.id;
+export const getCentralUserController = asyncHandler(async (req, res) => {
+  const userId = req.params.id;
 
-    const user = await findCentralUserById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+  const user = await CentralUserModel.findById(parseInt(userId));
 
-    let userIdRow = null;
-    if (user.role === "user") {
-      userIdRow = await findUsersById(user.id); // user.id = central_users.id
-    }
-
-    res.json({
-      ...user,
-      user_id: userIdRow?.id || null, // append the users.id as `user_id`
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: 'User not found',
     });
-  } catch (error) {
-    console.error("Error in getUserMe:", error);
-    res.status(500).json({ error: "Failed to fetch user" });
   }
-};
+
+  res.json({
+    success: true,
+    data: user,
+  });
+});
+
+export const listCentralUsersController = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+
+  const where = {};
+  if (req.query.role) {
+    where.role = req.query.role;
+  }
+  if (req.query.isActive !== undefined) {
+    where.isActive = req.query.isActive === 'true';
+  }
+
+  const users = await CentralUserModel.findMany(where, {
+    skip: (page - 1) * limit,
+    take: limit,
+  });
+
+  const total = await CentralUserModel.count(where);
+
+  res.json({
+    success: true,
+    data: users,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  });
+});

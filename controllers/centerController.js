@@ -1,117 +1,81 @@
-import { listCenterModel } from "../models/centreModel.js";
 import {
-  getCenterDetailByIdService,
   registerCenterService,
+  getCenterService,
   updateCenterService,
-} from "../services/centreService.js";
+  listCentersService,
+} from '../services/centreService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
-export const registerCenterController = async (req, res) => {
-  try {
-    const { body, files } = req;
+export const registerCenterController = asyncHandler(async (req, res) => {
+  const { body, files } = req;
 
-    let parsedData;
-
-    // Check if data is sent as centerData (single JSON string) or individual fields
-    if (body.centerData) {
-      // Handle centerData format
-      try {
-        parsedData = JSON.parse(body.centerData);
-      } catch (err) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid JSON format in centerData",
-        });
-      }
-    } else {
-      // Handle individual fields format
-      const safeJsonParse = (value, fieldName) => {
-        if (typeof value === "string") {
-          try {
-            return JSON.parse(value);
-          } catch (err) {
-            throw new Error(
-              `Invalid JSON format for ${fieldName}: ${err.message}`
-            );
-          }
-        }
-        return value;
-      };
-
-      parsedData = {
-        ...body,
-        amenities: safeJsonParse(body.amenities, "amenities"),
-        equipment: safeJsonParse(body.equipment, "equipment"),
-        services: safeJsonParse(body.services, "services"),
-        trainers: safeJsonParse(body.trainers, "trainers"),
-        pricingData: safeJsonParse(body.pricingData, "pricingData"),
-        schedule: safeJsonParse(body.schedule, "schedule"),
-      };
-    }
-
-    console.log("Parsed data:", parsedData);
-
-    const centerImageUrl = files.centerImage ? files.centerImage[0].path : null;
-    const galleryUrls = files.images ? files.images.map((img) => img.path) : [];
-
-    const newCenter = await registerCenterService(
-      parsedData,
-      galleryUrls,
-      centerImageUrl
-    );
-
-    res.status(201).json({
-      success: true,
-      data: newCenter,
-    });
-  } catch (err) {
-    console.error("Registration error:", err);
-    res.status(400).json({ success: false, message: err.message });
+  // Handle both JSON string (from data field) and direct form data
+  let parsedData;
+  if (body.data) {
+    // If data field exists, parse it as JSON
+    parsedData = JSON.parse(body.data);
+  } else {
+    // Otherwise, use body directly (form fields)
+    parsedData = body;
   }
-};
 
-export const listCenterController = async (req, res) => {
+  const profilePicUrl = files?.profilePic ? files.profilePic[0].path : null;
+  const backgroundImageUrl = files?.backgroundImage
+    ? files.backgroundImage[0].path
+    : null;
+
+  const center = await registerCenterService(
+    parsedData,
+    profilePicUrl,
+    backgroundImageUrl
+  );
+
+  res.status(201).json({
+    success: true,
+    message: 'Center registered successfully. Pending admin approval.',
+    data: center,
+  });
+});
+
+export const getCenterController = asyncHandler(async (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const center = await getCenterService(id);
+
+  res.json({
+    success: true,
+    data: center,
+  });
+});
+
+export const updateCenterController = asyncHandler(async (req, res) => {
+  const centerId = parseInt(req.params.id);
+  const updateData = req.body;
+
+  const updatedCenter = await updateCenterService(centerId, updateData);
+
+  res.status(200).json({
+    success: true,
+    message: 'Center updated successfully',
+    data: updatedCenter,
+  });
+});
+
+export const listCentersController = asyncHandler(async (req, res) => {
   const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
+  const limit = parseInt(req.query.limit) || 20;
+
   const filters = {
-    category: req.query.category,
-    city: req.query.city,
-    search: req.query.search,
+    search: req.query.search || null,
+    sortBy: req.query.sortBy || null,
   };
 
-  try {
-    const centers = await listCenterModel(filters, page, limit);
-    res.status(200).json({
-      success: true,
-      data: centers,
-      message: "Experts fetched successfully",
-    });
-  } catch (err) {
-    console.error("Error fetching centers:", err);
-    res.status(500).json({ error: "Failed to fetch centers" });
-  }
-};
-export const getCenterByIdController = async (req, res) => {
-  try {
-    const center = await getCenterDetailByIdService(req.params.id);
-    if (!center) {
-      return res.status(404).json({ error: "Center not found" });
-    }
-    res.status(200).json(center);
-  } catch (err) {
-    console.error("Get Center Error:", err);
-    res.status(500).json({ error: "Failed to fetch center" });
-  }
-};
+  const result = await listCentersService(filters, page, limit);
 
-// Update center info
-export const updateCenterByIdController = async (req, res) => {
-  try {
-    const updated = await updateCenterService(req.params.id, req.body);
-    res
-      .status(200)
-      .json({ message: "Center updated successfully", data: updated });
-  } catch (err) {
-    console.error("Update Center Error:", err);
-    res.status(500).json({ error: "Failed to update center" });
-  }
-};
+  res.status(200).json({
+    success: true,
+    data: result.centers,
+    meta: result.meta,
+    message: 'Centers fetched successfully',
+  });
+});
