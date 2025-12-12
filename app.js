@@ -1,8 +1,7 @@
 import dotenv from "dotenv";
 
-if (process.env.NODE_ENV !== "production") {
-  dotenv.config();
-}
+// Always load .env (Docker does not set NODE_ENV)
+dotenv.config();
 import express from "express";
 import pool from "./config/neondb.js";
 import passport from "./config/passportConfig.js";
