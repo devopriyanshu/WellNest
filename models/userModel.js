@@ -1,4 +1,4 @@
-import pool from "../config/db.js";
+import pool from "../config/neondb.js";
 
 export const findUsersByEmail = async (email) => {
   const result = await pool.query("SELECT * FROM users WHERE email = $1", [

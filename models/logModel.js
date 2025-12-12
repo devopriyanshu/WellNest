@@ -1,4 +1,4 @@
-import pool from "../config/db.js";
+import pool from "../config/neondb.js";
 
 export const getSleepLogsByUserId = async (userId) => {
   const result = await pool.query(

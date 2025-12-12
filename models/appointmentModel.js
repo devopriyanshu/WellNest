@@ -1,5 +1,5 @@
 import { CronJob } from "cron";
-import pool from "../config/db.js";
+import pool from "../config/neondb.js";
 
 // Create a new appointment
 export const createAppointment = async (data) => {
