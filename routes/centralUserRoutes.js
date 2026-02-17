@@ -1,10 +1,16 @@
-// routes/userRoutes.js
-import express from "express";
-import { getUserMe } from "../controllers/centralUserController.js";
-import { authMiddleware } from "../middleware/authMiddleware.js";
+import { Router } from 'express';
+import {
+  getCentralUserController,
+  listCentralUsersController,
+} from '../controllers/centralUserController.js';
+import { authMiddleware, requireRole } from '../middleware/authMiddleware.js';
 
-const router = express.Router();
+const router = Router();
 
-router.get("/me", authMiddleware, getUserMe); // protected route
+// Get central user by ID (admin only)
+router.get('/:id', authMiddleware, requireRole('admin', 'super_admin'), getCentralUserController);
+
+// List all central users (admin only)
+router.get('/', authMiddleware, requireRole('admin', 'super_admin'), listCentralUsersController);
 
 export default router;

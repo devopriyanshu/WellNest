@@ -17,12 +17,14 @@ router.get(
   "/google/callback",
   passport.authenticate("google", { session: false }),
   (req, res) => {
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    
     if (!req.user || !req.user.token) {
-      return res.redirect("https://www.mywellnest.app/login?error=auth_failed");
+      return res.redirect(`${frontendUrl}/login?error=auth_failed`);
     }
 
     // Send JWT to frontend
-    res.redirect(`https://www.mywellnest.app/login?token=${req.user.token}`);
+    res.redirect(`${frontendUrl}/login?token=${req.user.token}`);
   }
 );
 

@@ -1,54 +1,52 @@
-import { getUserById, updateUserService } from "../services/userService.js";
+import { getUserById, updateUserService } from '../services/userService.js';
+import { asyncHandler } from '../middleware/errorHandler.js';
 
-export const getUserMe = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    console.log(userId);
+export const getUserMe = asyncHandler(async (req, res) => {
+  const userId = req.user.centralUserId;
 
-    const user = await getUserById(userId);
-    res.json(user);
-  } catch (err) {
-    console.error("Error in getUserMe:", err);
-    res.status(500).json({ error: err.message });
-  }
-};
+  const user = await getUserById(userId);
+  
+  res.json({
+    success: true,
+    data: user,
+  });
+});
 
-export const updateUserControler = async (req, res) => {
-  const userId = req.user.userId;
+export const updateUserControler = asyncHandler(async (req, res) => {
+  const userId = req.user.centralUserId;
   const {
     full_name,
+    fullName,
     email,
     phone_number,
+    phoneNumber,
     gender,
     dob,
     profile_picture,
+    profilePicture,
     address,
     language_preference,
+    languagePreference,
     height,
     weight,
   } = req.body;
 
-  try {
-    const updatedUser = await updateUserService(userId, {
-      full_name,
-      email,
-      phone_number,
-      gender,
-      dob,
-      profile_picture,
-      address,
-      language_preference,
-      height,
-      weight,
-    });
-    res.status(200).json({
-      message: "Profile updated successfully",
-      user: updatedUser,
-    });
-  } catch (err) {
-    console.error("Update profile error:", err.message);
-    res
-      .status(400)
-      .json({ message: err.message || "Failed to update profile" });
-  }
-};
+  const updatedUser = await updateUserService(userId, {
+    full_name: full_name || fullName,
+    email,
+    phone_number: phone_number || phoneNumber,
+    gender,
+    dob,
+    profile_picture: profile_picture || profilePicture,
+    address,
+    language_preference: language_preference || languagePreference,
+    height,
+    weight,
+  });
+
+  res.status(200).json({
+    success: true,
+    message: 'Profile updated successfully',
+    data: updatedUser,
+  });
+});
