@@ -1,56 +1,62 @@
-# Node.js dependencies
-/node_modules/
+# =========================
+# Dependencies
+# =========================
+node_modules/
 
-# Environment variable files
+# =========================
+# Environment Variables
+# =========================
 .env
-.env.local
-.env.development
-.env.production
-.env.staging
-.env.*.local
-
-# Keep the example file (not ignored)
+.env.*
 !.env.example
 
+# =========================
 # Logs
+# =========================
 logs/
 *.log
-*.log*
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Operating system files
-.DS_Store   # macOS specific
-Thumbs.db   # Windows specific
+# =========================
+# Build Output
+# =========================
+dist/
+build/
+.next/
+out/
+coverage/
 
-# Build directories
-/dist
-/build
+# =========================
+# Prisma
+# =========================
+prisma/generated/
+generated/prisma/
 
-# IDE files
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE / Editor
+# =========================
 .vscode/
 .idea/
-
-# Debug files
-*.bak
 *.swp
+*.swo
+*.bak
+
+# =========================
+# Misc
+# =========================
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Sensitive Keys
 config/serviceAccountKey.json
-
-/generated/prisma
-
-# Documentation and Plans
-*.md
-!README.md
-!run-migration*
-
-# Testing Files
-*test*.js
-*.test.js
-*.spec.js
-tests/
-__tests__/
-debug-*.js
-
-# Temporary SQL Files
-*.session.sql
-run_migration.sh
-run_migration.js
