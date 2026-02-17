@@ -4,6 +4,7 @@ import {
   loginController,
   logoutController,
   signupController,
+  verifyEmailController,
 } from "../controllers/authController.js";
 
 const router = Router();
@@ -31,5 +32,7 @@ router.get(
 router.post("/login", loginController);
 
 router.post("/signup", signupController);
+
+router.get("/verify-email", verifyEmailController);
 
 export default router;
