@@ -30,18 +30,63 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Navigate to app directory or create it
+            mkdir -p ~/wellnest/nginx
+            cd ~/wellnest
+
+            # Create/Update .env.production file from secrets
+            echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" > .env.production
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env.production
+            echo "NODE_ENV=production" >> .env.production
+            echo "PORT=4000" >> .env.production
+            # Add other secrets here as needed
+
+            # Pull latest images
             echo "Pulling new image..."
             docker pull ${{ secrets.IMAGE_NAME }}:${{ github.sha }}
+            
+            # Export IMAGE_TAG for docker-compose
+            export IMAGE_NAME=${{ secrets.IMAGE_NAME }}
+            export IMAGE_TAG=${{ github.sha }}
 
-            echo "Stopping existing container..."
+            # Stop and remove existing containers (if running via old method)
             docker stop wellnest-backend || true
             docker rm wellnest-backend || true
+            
+            # Start services using Docker Compose
+            # Note: We need to copy docker-compose.prod.yml and nginx.conf to the server first.
+            # Since this action only runs scripts, we'll assume the files are in the repo 
+            # and we need a way to get them there.
+            # Best practice: checkout repo on server OR scp files.
+            # Simplified approach: We will use scp-action below this step to copy files, 
+            # then run the compose command here.
+            
+      - name: Copy Configuration Files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.prod.yml,nginx/nginx.conf"
+          target: "~/wellnest"
 
-            echo "Running new container..."
-            docker run -d \
-              --name wellnest-backend \
-              --env-file /home/priyanshupatel1902/wellnest/.env.production \
-              -p 80:4000 \
-              ${{ secrets.IMAGE_NAME }}:${{ github.sha }}
+      - name: Start Application
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/wellnest
+            export IMAGE_NAME=${{ secrets.IMAGE_NAME }}
+            export IMAGE_TAG=${{ github.sha }}
+            
+            # Login to Docker Hub (if private repo)
+            # echo ${{ secrets.REGISTRY_TOKEN }} | docker login -u ${{ secrets.REGISTRY_USERNAME }} --password-stdin
 
-            echo "Deployment complete!"
+            echo "Starting services..."
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            
+            echo "Pruning unused images..."
+            docker image prune -f
+
