@@ -25,6 +25,7 @@ model CentralUser {
   updatedAt  DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
   name       String?   @db.VarChar(50)
   provider   String?   @default("local")
+  verificationToken String?   @map("verification_token")
 
   // Relations
   users         User[]

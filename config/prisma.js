@@ -29,12 +29,7 @@ const prisma = new PrismaClient({
 });
 
 // Log queries in development
-if (process.env.NODE_ENV === 'development') {
-  prisma.$on('query', (e) => {
-    logger.debug(`Query: ${e.query}`);
-    logger.debug(`Duration: ${e.duration}ms`);
-  });
-}
+
 
 // Test connection
 prisma.$connect()
