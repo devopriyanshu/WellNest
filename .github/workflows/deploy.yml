@@ -42,13 +42,10 @@ jobs:
             mkdir -p ~/wellnest
             cd ~/wellnest
 
-            echo "Creating .env.production..."
-            cat > .env.production <<EOF
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            NODE_ENV=production
-            PORT=4000
-            EOF
+            cd ~/wellnest
+
+            # NOTE: We are NOT creating .env.production here anymore.
+            # It must exist on the server manually.
 
             # Free up space before pulling
             echo "Cleaning up old images..."
