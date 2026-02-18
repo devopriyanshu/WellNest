@@ -1,46 +1,52 @@
-# Build Stage
+# -----------------------
+# 1️⃣ Build Stage
+# -----------------------
 FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json first to leverage cache
+# Install dependencies using lock file
 COPY package*.json ./
+RUN npm ci
 
-# Install all dependencies (including devDependencies if needed for build scripts)
-RUN npm size-check || true 
-RUN npm install
-
-# Copy the rest of the application code
+# Copy source code
 COPY . .
 
-# Generate Prisma Client
+# Generate Prisma client
 RUN npx prisma generate
 
-# Final Stage
+# If using TypeScript, build here:
+# RUN npm run build
+
+
+# -----------------------
+# 2️⃣ Production Stage
+# -----------------------
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy only production dependencies
 COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
 
-# Install only production dependencies
-RUN npm install --production && \
-    npm cache clean --force
-
-# Copy Prisma Client from builder stage
+# Copy built app + prisma from builder
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app ./
 
-# Copy application code
-COPY . .
+# Create logs directory with proper permission
+RUN mkdir -p /app/logs
 
-# Use a non-root user for security
+# Create non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+# Give ownership to app user
+RUN chown -R appuser:appgroup /app
+
 USER appuser
 
-# Expose internal container port
 EXPOSE 4000
 
-# Start the app
 CMD ["npm", "start"]
