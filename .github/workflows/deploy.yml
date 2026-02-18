@@ -50,6 +50,10 @@ jobs:
             PORT=4000
             EOF
 
+            # Free up space before pulling
+            echo "Cleaning up old images..."
+            docker system prune -f
+
             echo "Pulling latest image..."
             docker pull ${{ secrets.IMAGE_NAME }}:latest
 
