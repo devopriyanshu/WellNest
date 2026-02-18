@@ -30,6 +30,9 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
 
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
+
 # Copy built app + prisma from builder
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
