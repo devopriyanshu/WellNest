@@ -5,8 +5,8 @@ services:
     image: postgres:15-alpine
     container_name: wellnest-postgres-local
     environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME:-wellnest}
     ports:
       - "5432:5432"
@@ -22,7 +22,7 @@ services:
     env_file:
       - .env
     environment:
-      - DATABASE_URL=postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-wellnest}?schema=public
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-wellnest}?schema=public
     depends_on:
       - postgres
     volumes:
