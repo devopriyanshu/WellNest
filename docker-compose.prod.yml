@@ -1,25 +1,17 @@
-version: '3.8'
 
 services:
   backend:
-    build: .
-    image: ${IMAGE_NAME}:${IMAGE_TAG:-latest}
+    image: devopriyanshu/wellnest-backend:latest
     restart: always
     container_name: wellnest-backend
     env_file:
       - .env.production
     expose:
       - "4000"
+    mem_limit: 512m
+    cpus: 0.5
     networks:
       - wellnest-network
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
 
   nginx:
     image: nginx:alpine
