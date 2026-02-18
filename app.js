@@ -22,6 +22,9 @@ import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 
+// Enable trust proxy for Nginx/Load Balancer
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmetConfig);
 app.use(cors(corsConfig));
