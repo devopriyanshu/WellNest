@@ -3,7 +3,6 @@ dotenv.config();
 
 import express from "express";
 import cors from "cors";
-import session from "express-session";
 import passport from "./config/passportConfig.js";
 import prisma from "./config/prisma.js";
 import logger from "./utils/logger.js";
@@ -33,23 +32,8 @@ app.use(cors(corsConfig));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Session setup with proper configuration
-app.use(
-  session({ 
-    secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
-    resave: false, 
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
-  })
-);
-
-// Initialize Passport
+// Initialize Passport (Stateless JWT only)
 app.use(passport.initialize());
-app.use(passport.session());
 
 // Health check endpoint
 app.get('/health', async (req, res) => {

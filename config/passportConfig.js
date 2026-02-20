@@ -36,19 +36,6 @@ passport.use(
   )
 );
 
-// Serialize user for session (not used with JWT, but required by passport)
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-// Deserialize user from session
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await CentralUserModel.findById(id);
-    done(null, user);
-  } catch (error) {
-    done(error, null);
-  }
-});
+// Stateless authentication - no serializeUser/deserializeUser needed
 
 export default passport;
