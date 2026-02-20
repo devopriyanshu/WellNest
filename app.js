@@ -5,7 +5,7 @@ import express from "express";
 import cors from "cors";
 import session from "express-session";
 import passport from "./config/passportConfig.js";
-import pool from "./config/neondb.js";
+import prisma from "./config/prisma.js";
 import logger from "./utils/logger.js";
 import { helmetConfig, rateLimiters, corsConfig } from "./config/security.js";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -54,7 +54,8 @@ app.use(passport.session());
 // Health check endpoint
 app.get('/health', async (req, res) => {
   try {
-    await pool.query('SELECT 1');
+    // Use Prisma for the health check query instead of the redundant pg pool
+    await prisma.$queryRaw`SELECT 1`;
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -118,26 +119,16 @@ app.use((req, res) => {
 // Error handler (must be last)
 app.use(errorHandler);
 
-// Database connection
-pool
-  .connect()
-  .then(() => {
-    logger.info("Connected to PostgreSQL database!");
-  })
-  .catch((err) => {
-    logger.error("Error connecting to the database:", { error: err.message });
-  });
-
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, shutting down gracefully');
-  await pool.end();
+  await prisma.$disconnect();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   logger.info('SIGINT received, shutting down gracefully');
-  await pool.end();
+  await prisma.$disconnect();
   process.exit(0);
 });
 
