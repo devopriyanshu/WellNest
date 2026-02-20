@@ -15,4 +15,9 @@ const pool = new Pool({
   connectionTimeoutMillis: 10000,
 });
 
+// Catch unhandled errors on idle clients so the app doesn't crash
+pool.on('error', (err, client) => {
+  console.error('Unexpected error on idle client', err);
+});
+
 export default pool;
