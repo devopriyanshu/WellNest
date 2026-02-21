@@ -1,0 +1,25 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "/Users/priyanshu/Desktop/WellNest/backend/logs/.7378e880cd52781cb1a71f2e3fc86ee8abc0c670-audit.json",
+    "files": [
+        {
+            "date": 1771328660979,
+            "name": "/Users/priyanshu/Desktop/WellNest/backend/logs/error-2026-02-17.log",
+            "hash": "a72697bfbfffb9edb690398a443c3f0db45e3101087b6c9fbe2b63823d094924"
+        },
+        {
+            "date": 1771358075859,
+            "name": "/Users/priyanshu/Desktop/WellNest/backend/logs/error-2026-02-18.log",
+            "hash": "67a45c3a1f73522720f20b8967b2f7c5b72fadcdca24a65344c37e03e712fba5"
+        },
+        {
+            "date": 1771619277553,
+            "name": "/Users/priyanshu/Desktop/WellNest/backend/logs/error-2026-02-21.log",
+            "hash": "284ede285bf6e84c1c8875ccd954b2c280f079cd7f2e20deff163c63ec6999b5"
+        }
+    ],
+    "hashType": "sha256"
+}
