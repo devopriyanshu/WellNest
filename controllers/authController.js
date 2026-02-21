@@ -93,6 +93,25 @@ export const loginController = async (req, res) => {
        return res.status(403).json({ error: "Please verify your email before logging in." });
     }
 
+    // Heal: auto-create User profile row if missing for any 'user' role account
+    // This fixes legacy accounts that were created before profile rows were enforced
+    if (user.role === 'user') {
+      const existingProfile = await prisma.user.findFirst({
+        where: { user_id: user.id },
+      });
+
+      if (!existingProfile) {
+        console.log(`🔧 Healing missing User profile for CentralUser id=${user.id} (${user.email})`);
+        await prisma.user.create({
+          data: {
+            user_id: user.id,
+            fullName: user.name || user.email.split('@')[0],
+            email: user.email,
+          },
+        });
+      }
+    }
+
     res.status(200).json({
       message: "Login successful",
       user,

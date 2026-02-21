@@ -10,13 +10,27 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 
 // Create appointment controller
 export const createAppointmentController = asyncHandler(async (req, res) => {
-  const userId = req.user.refId; // From auth middleware
+  const userId = req.user.userId; // User profile table ID
+
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      message: 'Your user profile is not complete. Please update your profile before booking an appointment.',
+    });
+  }
 
   const { expert_id, appointment_date, type, notes } = req.body;
 
+  if (!expert_id || !appointment_date) {
+    return res.status(400).json({
+      success: false,
+      message: 'expert_id and appointment_date are required.',
+    });
+  }
+
   const appointment = await createNewAppointment({
     user_id: userId,
-    expert_id,
+    expert_id: parseInt(expert_id),
     appointment_date,
     type,
     notes,
@@ -44,21 +58,37 @@ export const deleteAppointmentController = asyncHandler(async (req, res) => {
 
 export const getAppointmentsByUserIdController = asyncHandler(async (req, res) => {
   const { userId } = req.params;
-  const requestUserId = req.user.refId;
+  const parsedId = parseInt(userId);
 
-  // Check if user is requesting their own appointments or is an admin
-  if (parseInt(userId) !== requestUserId && req.user.role !== 'admin') {
+  // The frontend sends CentralUser.id (from JWT payload.id).
+  // req.user.userId is the User profile table ID (different value).
+  // Resolve: if parsedId matches centralUserId, swap to User profile ID.
+  let resolvedUserId = parsedId;
+
+  if (parsedId === req.user.centralUserId || parsedId === req.user.id) {
+    resolvedUserId = req.user.userId;
+  }
+
+  // Auth check: resolved profile ID must match or caller must be admin
+  if (resolvedUserId !== req.user.userId && req.user.role !== 'admin') {
     return res.status(403).json({
       success: false,
       message: 'Unauthorized to view these appointments',
     });
   }
 
-  const appointments = await getAppointmentsByUserId(userId);
+  if (!resolvedUserId) {
+    return res.status(400).json({
+      success: false,
+      message: 'User profile not found. Cannot retrieve appointments.',
+    });
+  }
 
-  res.status(200).json({ 
-    success: true, 
-    data: appointments 
+  const appointments = await getAppointmentsByUserId(resolvedUserId);
+
+  res.status(200).json({
+    success: true,
+    data: appointments,
   });
 });
 

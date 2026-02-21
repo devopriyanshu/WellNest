@@ -176,6 +176,21 @@ export const googleSignIn = async (googleId, email, name) => {
       });
     }
 
+    // Heal: create missing User profile for existing users who don't have one
+    const existingProfile = await prisma.user.findFirst({
+      where: { user_id: centralUser.id },
+    });
+    if (!existingProfile && centralUser.role === 'user') {
+      logger.info(`Healing missing User profile for CentralUser ${centralUser.id} (${centralUser.email})`);
+      await prisma.user.create({
+        data: {
+          user_id: centralUser.id,
+          fullName: centralUser.name || email.split('@')[0],
+          email: centralUser.email,
+        },
+      });
+    }
+
     // Update last login
     await prisma.centralUser.update({
       where: { id: centralUser.id },

@@ -3,9 +3,16 @@ import { NotFoundError, ValidationError, ForbiddenError } from '../utils/errors.
 import logger from '../utils/logger.js';
 
 export const createNewAppointment = async (appointmentData) => {
+  const expertId = parseInt(appointmentData.expert_id);
+  const userId = parseInt(appointmentData.user_id);
+
+  if (isNaN(expertId) || isNaN(userId)) {
+    throw new ValidationError('Invalid expert_id or user_id');
+  }
+
   // Validate expert exists and is approved
   const expert = await prisma.expert.findUnique({
-    where: { id: appointmentData.expert_id },
+    where: { id: expertId },
   });
 
   if (!expert) {
@@ -16,14 +23,40 @@ export const createNewAppointment = async (appointmentData) => {
     throw new ValidationError('Expert is not approved yet');
   }
 
-  // Create appointment
+  // Validate the User profile exists
+  const userProfile = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!userProfile) {
+    throw new ValidationError(
+      'Your user profile is not complete. Please update your profile before booking an appointment.'
+    );
+  }
+
+  // Prevent duplicate active bookings with the same expert
+  const existingBooking = await prisma.appointment.findFirst({
+    where: {
+      userId,
+      expertId,
+      status: { not: 'cancelled' },
+    },
+  });
+
+  if (existingBooking) {
+    throw new ValidationError(
+      'You already have an active appointment with this expert. Please cancel it before booking a new one.'
+    );
+  }
+
+  // Create appointment with confirmed status
   const appointment = await prisma.appointment.create({
     data: {
-      userId: appointmentData.user_id,
-      expertId: appointmentData.expert_id,
+      userId,
+      expertId,
       appointmentDate: new Date(appointmentData.appointment_date),
       type: appointmentData.type,
-      status: appointmentData.status || 'pending',
+      status: 'confirmed',
       notes: appointmentData.notes,
     },
     include: {
@@ -46,7 +79,7 @@ export const createNewAppointment = async (appointmentData) => {
     },
   });
 
-  logger.info(`Appointment created: ${appointment.id} for user ${appointmentData.user_id}`);
+  logger.info(`Appointment created: ${appointment.id} for user ${userId}`);
 
   return appointment;
 };
